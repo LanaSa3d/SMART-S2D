@@ -70,6 +70,7 @@ const state = {
   selectedRequirementId: "",
   reportFormat: "XML",
   reportScope: "Project",
+  authMode: "signIn",
   notice: "",
   error: "",
 };
@@ -175,6 +176,7 @@ function renderMissingConfig() {
 }
 
 function renderAuth() {
+  const isSignUp = state.authMode === "signUp";
   return `
     <main class="auth-screen">
       <section class="auth-panel">
@@ -187,22 +189,29 @@ function renderAuth() {
         </div>
         <p class="muted">Sign in or create an account to manage organizations, projects, and SMART/R2F requirements.</p>
         ${renderFeedback()}
+        <div class="auth-tabs">
+          <button class="${state.authMode === "signIn" ? "active" : ""}" data-action="set-auth-mode" data-mode="signIn" type="button">Sign in</button>
+          <button class="${state.authMode === "signUp" ? "active" : ""}" data-action="set-auth-mode" data-mode="signUp" type="button">Create account</button>
+        </div>
         <form class="auth-form" data-form="auth">
-          <label class="field">
-            <span>Full name</span>
-            <input data-auth-field="fullName" autocomplete="name" placeholder="Lana Saad" />
-          </label>
+          ${
+            isSignUp
+              ? `<label class="field">
+                  <span>Full name</span>
+                  <input data-auth-field="fullName" autocomplete="name" placeholder="Lana Saad" />
+                </label>`
+              : ""
+          }
           <label class="field">
             <span>Email</span>
-            <input data-auth-field="email" autocomplete="email" type="email" />
+            <input data-auth-field="email" autocomplete="email" type="email" placeholder="name@example.com" />
           </label>
           <label class="field">
             <span>Password</span>
             <input data-auth-field="password" autocomplete="current-password" type="password" />
           </label>
           <div class="button-row">
-            <button class="primary-button" data-action="sign-in" type="button">Sign in</button>
-            <button class="secondary-button" data-action="sign-up" type="button">Create account</button>
+            <button class="primary-button" data-action="${isSignUp ? "sign-up" : "sign-in"}" type="button">${isSignUp ? "Create account" : "Sign in"}</button>
           </div>
         </form>
       </section>
@@ -709,6 +718,14 @@ async function handleAction(event) {
   const element = event.currentTarget;
   const action = element.dataset.action;
 
+  if (action === "set-auth-mode") {
+    state.authMode = element.dataset.mode;
+    state.error = "";
+    state.notice = "";
+    render();
+    return;
+  }
+
   await runWithUi(async () => {
     if (action === "sign-in") await handleSignIn();
     if (action === "sign-up") await handleSignUp();
@@ -745,6 +762,7 @@ async function handleRequirementEdit(event) {
 
 async function handleSignIn() {
   const values = getAuthValues();
+  requireAuthFields(values, false);
   const result = await signInWithEmail(values.email, values.password);
   state.session = result.session;
   if (state.session?.user) {
@@ -756,6 +774,7 @@ async function handleSignIn() {
 
 async function handleSignUp() {
   const values = getAuthValues();
+  requireAuthFields(values, true);
   const result = await signUpWithEmail(values.email, values.password, values.fullName);
   state.session = result.session;
   if (state.session?.user) {
@@ -976,6 +995,12 @@ function getAuthValues() {
     email: getAuthValue("email"),
     password: getAuthValue("password"),
   };
+}
+
+function requireAuthFields(values, fullNameRequired) {
+  if (fullNameRequired && !values.fullName) throw new Error("Full name is required.");
+  if (!values.email) throw new Error("Email is required.");
+  if (!values.password) throw new Error("Password is required.");
 }
 
 function getAuthValue(name) {
