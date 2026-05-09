@@ -68,7 +68,7 @@ export async function createOrganization(name, description = "") {
   const { data: organization, error: organizationError } = await client
     .from("organizations")
     .insert({ name, description, created_by: user.id })
-    .select()
+    .select("id")
     .single();
   throwIfError(organizationError);
 
@@ -79,7 +79,7 @@ export async function createOrganization(name, description = "") {
   });
   throwIfError(memberError);
 
-  return { ...organization, role: "Admin" };
+  return { id: organization.id, name, description, created_by: user.id, role: "Admin" };
 }
 
 export async function listProjects(organizationId) {
