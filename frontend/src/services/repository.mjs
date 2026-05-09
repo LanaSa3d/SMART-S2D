@@ -22,7 +22,7 @@ export async function signUpWithEmail(email, password, fullName) {
     options: { data: { full_name: fullName } },
   });
   throwIfError(error);
-  if (data.user) {
+  if (data.user && data.session) {
     await ensureProfile(data.user, fullName);
   }
   return data;
