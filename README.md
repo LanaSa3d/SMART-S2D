@@ -1,46 +1,92 @@
 # SMART-S2D
 
-SMART-S2D is a graduation project web application for managing endogenous software requirements using the SMART methodology and R2F-inspired categorization.
+A web application for managing endogenous software requirements using the SMART methodology and R2F-inspired categorization. Built as a graduation project.
 
-The active prototype taxonomy is intentionally scoped to the software requirements branch:
+## Features
 
-- Functional requirements
-- Data requirements
-- User interface requirements
-- Technical interface requirements
+- **SMART Wizard** — guided requirement writing with category-specific templates
+- **Rule-based classification** — automatic subject/category suggestion with confidence scoring
+- **Requirement validation** — real-time SMART writing guidance and warnings
+- **Workspace model** — accounts → organizations → projects → requirements
+- **Multi-criteria search** — filter by keyword, subject, priority, status, source, and validation state
+- **Export reports** — generate XML, PDF, and DOCX exports
+- **Taxonomy browser** — visual tree for Software requirements (Functional, Data, UI, Technical Interface)
+- **Audit logging** — every create/update/delete is tracked
+- **Role-based access** — Admin, Analyst, Software User, Project Manager
 
-Operation and development requirements are documented as out of scope for this prototype slice.
+---
 
-## Current Branch Work
+## Prerequisites
 
-- Active development branch: `SmTEST`
-- Goal: replace the one-page prototype with a real Supabase-backed product slice before anything is merged to `main`
-- Browser-based React shell in `frontend/`
-- Rule-based SMART subject/category suggestion
-- Guided requirement writing validation
-- Workspace model based on accounts, organizations, projects, requirements, reports, and audit logs
-- Taxonomy chooser with Software active and Operation/Development visible for future phases
-- Category-specific DS0-inspired templates for Functional, Data, User Interface, and Technical Interface requirements
-- Dashboard summary and retrieval filtering
-- Software-only taxonomy tree
-- Phase 1 Supabase schema and RLS setup in `database/supabase_phase1.sql`
-- Django/DRF backend scaffold in `backend/`
+- [Node.js](https://nodejs.org/) (v18 or later)
+- A free [Supabase](https://supabase.com/) account
 
-## Supabase Setup
+---
 
-Create a Supabase project, then open the SQL editor and run:
+## Setup Guide
 
-```text
-database/supabase_phase1.sql
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/LanaSa3d/SMART-S2D.git
+cd SMART-S2D
 ```
 
-For local browser configuration, copy:
+### 2. Set up the Supabase database
 
+1. Go to [supabase.com](https://supabase.com/) and create a new project (free tier works fine)
+2. Wait for the project to finish provisioning
+3. Go to **SQL Editor** (left sidebar)
+4. Copy the entire contents of `database/supabase_phase1.sql` and paste it into the SQL editor
+5. Click **Run** — this creates all tables, triggers, RLS policies, and seed data
+
+> **Note:** If you run into permission errors when using the app, you can disable Row Level Security by running this in the SQL Editor:
+>
+> ```sql
+> ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.organizations DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.organization_members DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.projects DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.taxonomy_subjects DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.taxonomy_categories DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.requirements DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.requirement_versions DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.imports DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.reports DISABLE ROW LEVEL SECURITY;
+> ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
+> ```
+
+### 3. Disable email confirmation (recommended for testing)
+
+In the Supabase dashboard:
+
+1. Go to **Authentication** → **Providers** → **Email**
+2. Turn **off** "Confirm email"
+3. Click **Save**
+
+This lets new accounts sign in immediately without needing to verify their email.
+
+### 4. Get your Supabase credentials
+
+1. In your Supabase dashboard, go to **Project Settings** → **API**
+2. Copy the **Project URL** (looks like `https://xxxxx.supabase.co`)
+3. Copy the **anon / public** key (a long `eyJ...` string)
+
+### 5. Configure the frontend
+
+Create the local config file:
+
+**Windows (PowerShell):**
 ```powershell
 Copy-Item frontend/src/env.local.example.js frontend/src/env.local.js
 ```
 
-Edit `frontend/src/env.local.js` with the project URL and anon key:
+**Mac / Linux:**
+```bash
+cp frontend/src/env.local.example.js frontend/src/env.local.js
+```
+
+Open `frontend/src/env.local.js` and paste your Supabase credentials:
 
 ```js
 window.SMART_S2D_CONFIG = {
@@ -49,34 +95,95 @@ window.SMART_S2D_CONFIG = {
 };
 ```
 
-`frontend/src/env.local.js` is ignored by Git. Do not commit database passwords or service-role keys.
+> ⚠️ This file is git-ignored. Never commit real keys.
 
-## Run The Frontend
+### 6. Run the app
 
-This workspace currently exposes Node.js but not `npm` or Python. The frontend therefore includes a dependency-free local server:
-
-```powershell
+```bash
 node frontend/server.mjs
 ```
 
-Open:
+Open your browser and go to:
 
-```text
+```
 http://localhost:5173
 ```
 
-The current browser shell is dependency-free at install time. Supabase is loaded through browser ES modules in the Phase 1 implementation so the app can still run without `npm install`.
+No `npm install` is needed — the server is dependency-free and Supabase is loaded via browser ES modules.
 
-## Verify Available Tests
+---
 
-```powershell
+## How to Use
+
+1. **Create an account** — click "Create account", enter your name, email, and a password
+2. **Create an organization** — type a name and click "Create organization"
+3. **Create a project** — type a name and click "Create project"
+4. **Open the project** — click on it to enter the project workspace
+5. **Add requirements** — use the SMART Wizard to fill in the template and save
+6. **Browse** — use Dashboard, Requirements, Taxonomy, Search, and Reports from the sidebar
+
+---
+
+## Run Tests
+
+```bash
 node --test frontend/src/domain/*.test.mjs frontend/serverPaths.test.mjs
 ```
 
-## Planned Full Stack
+---
 
-- Frontend: React, Vite, TypeScript, React Router, TanStack Query, React Hook Form, Zod, Recharts
-- Backend: Python, Django, Django REST Framework
-- Auth/database: Supabase Auth and Supabase PostgreSQL
-- Reports: XML, PDF, and DOCX exports
-- Deployment: Vercel for frontend, lightweight hosted Django backend
+## Project Structure
+
+```
+SMART-S2D/
+├── frontend/
+│   ├── index.html                  # Entry point
+│   ├── server.mjs                  # Zero-dependency dev server
+│   ├── package.json
+│   └── src/
+│       ├── main.mjs                # App shell and UI rendering
+│       ├── styles.css              # All styles
+│       ├── config.mjs              # Supabase config reader
+│       ├── env.local.js            # Your local Supabase keys (git-ignored)
+│       ├── domain/                 # Business logic (pure functions)
+│       │   ├── dashboardModel.mjs
+│       │   ├── entities.mjs
+│       │   ├── exportModel.mjs
+│       │   ├── importModel.mjs
+│       │   ├── smartRules.mjs
+│       │   └── workflowModel.mjs
+│       └── services/               # Supabase API calls
+│           ├── repository.mjs
+│           └── supabaseClient.mjs
+├── database/
+│   ├── schema.sql                  # Original schema reference
+│   └── supabase_phase1.sql         # Full Supabase setup (run this one)
+├── backend/                        # Django scaffold (future)
+└── .env.example                    # Backend env template
+```
+
+---
+
+## Taxonomy Scope
+
+The prototype covers **Software requirements** only:
+
+| Subject | Description |
+|---------|-------------|
+| Functional requirements | Behavior the software must perform |
+| Data requirements | Data the software must store, manage, or retrieve |
+| User interface requirements | Screens, controls, navigation, and visual feedback |
+| Technical interface requirements | APIs, integrations, protocols, and external communication |
+
+Operation and Development requirements are visible in the taxonomy tree but scoped for future phases.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Vanilla JavaScript (ES modules), CSS |
+| Database & Auth | Supabase (PostgreSQL + Auth) |
+| Dev Server | Node.js (zero dependencies) |
+| Backend (future) | Python, Django, Django REST Framework |
