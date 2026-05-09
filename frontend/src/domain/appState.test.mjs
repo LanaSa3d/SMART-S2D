@@ -59,13 +59,14 @@ describe("workspace app state actions", () => {
     const result = selectCategory(baseState, "Data requirements");
 
     assert.equal(result.selectedCategory, "Data requirements");
-    assert.equal(result.templateValues.goalStatement, "store");
+    assert.equal(result.templateValues.genericSubject, "Data");
+    assert.equal(result.templateValues.relationVerb, "ensure");
   });
 
   it("updates the template verb from suggested verbs", () => {
-    const result = useVerb(baseState, "calculate");
+    const result = useVerb(baseState, "adopt");
 
-    assert.equal(result.templateValues.goalStatement, "calculate");
+    assert.equal(result.templateValues.relationVerb, "adopt");
   });
 
   it("saves a generated requirement to the selected project", () => {

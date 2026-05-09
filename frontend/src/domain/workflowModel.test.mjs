@@ -31,21 +31,22 @@ describe("workspace taxonomy workflow", () => {
     ]);
   });
 
-  it("builds the DS0-inspired template statement from selected fields", () => {
+  it("builds the formal supervisor-approved template statement from selected fields", () => {
     const values = getDefaultTemplateValues("Technical interface requirements");
     const statement = buildTemplateStatement("Technical interface requirements", {
       ...values,
       softwareName: "SMART-S2D",
       obligation: "shall",
-      goalStatement: "integrate",
-      subjectName: "Supabase Auth",
-      subjectStatement: "to authenticate users through secure tokens",
-      subjectModel: "OAuth-based Supabase authentication model",
+      relationVerb: "ensure",
+      genericSubject: "Technical Interface",
+      specificSubjectName: "Supabase Auth",
+      specificSubjectStatement: "authenticate users through secure tokens",
+      specificSubjectModel: "OAuth-based Supabase authentication model",
     });
 
     assert.equal(
       statement,
-      'The "SMART-S2D" software shall integrate "Supabase Auth" described as follows: "to authenticate users through secure tokens" according to the model: "OAuth-based Supabase authentication model".',
+      'The "SMART-S2D" software shall ensure "Technical Interface" "Supabase Auth" described as follows: "authenticate users through secure tokens" according to the model: "OAuth-based Supabase authentication model".',
     );
   });
 });

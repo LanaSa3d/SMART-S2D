@@ -70,7 +70,7 @@ describe("guided requirement writing validation", () => {
 
   it("accepts a DS0-style software subject template statement", () => {
     const result = validateRequirementWriting(
-      'The "SMART-S2D" software shall store "requirement metadata" described as follows: "including priority and status" according to the model: "repository model".',
+      'The "SMART-S2D" software shall ensure "Data" "requirement metadata" described as follows: "store priority and status" according to the model: "repository model".',
     );
 
     assert.equal(result.isValid, true);

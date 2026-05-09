@@ -67,16 +67,20 @@ export function selectCategory(state, categoryName) {
 export function useVerb(state, verb) {
   return {
     ...state,
-    templateValues: { ...state.templateValues, goalStatement: verb },
+    templateValues: { ...state.templateValues, relationVerb: verb, goalStatement: verb },
   };
 }
 
 export function saveRequirement(state, requirements) {
   const statement = buildTemplateStatement(state.selectedCategory, state.templateValues);
   const suggestion = suggestSmartCategory(statement);
+  const subjectName =
+    state.templateValues.specificSubjectName ?? state.templateValues.subjectName ?? "requirement";
+  const relationVerb =
+    state.templateValues.relationVerb ?? state.templateValues.goalStatement ?? "ensure";
   const nextRequirement = {
     id: `REQ-${String(requirements.length + 1).padStart(3, "0")}`,
-    title: `${state.templateValues.goalStatement} ${state.templateValues.subjectName}`,
+    title: `${relationVerb} ${subjectName}`,
     description: statement,
     subject: state.selectedCategory,
     category: suggestion.category,

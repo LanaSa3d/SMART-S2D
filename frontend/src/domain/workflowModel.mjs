@@ -24,60 +24,80 @@ export const SOFTWARE_CATEGORY_TEMPLATES = {
     accent: "blue",
     shortName: "Function",
     intent: "Capture behavior the software performs for users or stakeholders.",
-    prompt: "The software shall [action] [target/object].",
-    verbs: ["verify", "process", "calculate", "validate", "generate"],
+    prompt: "The software shall ensure Function [specific software subject].",
+    verbs: ["ensure", "require", "adopt"],
     defaults: {
       softwareName: "SMART-S2D",
       obligation: "shall",
-      goalStatement: "verify",
-      subjectName: "user credentials",
-      subjectStatement: "to allow authorized access to the requirements workspace",
-      subjectModel: "role-based access control model",
+      relationVerb: "ensure",
+      genericSubject: "Function",
+      specificSubjectName: "user authentication",
+      specificSubjectStatement: "verify user credentials against authorized records",
+      specificSubjectModel: "role-based access control model",
+      priority: "Medium",
+      status: "Draft",
+      sourceType: "Manual",
+      notes: "",
     },
   },
   "Data requirements": {
     accent: "green",
     shortName: "Data",
     intent: "Describe stored, managed, retrieved, or preserved software data.",
-    prompt: "The software shall store/manage/retrieve [data entity].",
-    verbs: ["store", "manage", "retrieve", "record", "archive"],
+    prompt: "The software shall ensure Data [specific data subject].",
+    verbs: ["ensure", "require", "adopt"],
     defaults: {
       softwareName: "SMART-S2D",
       obligation: "shall",
-      goalStatement: "store",
-      subjectName: "requirement metadata",
-      subjectStatement: "including category, priority, status, owner, and version history",
-      subjectModel: "normalized requirement repository model",
+      relationVerb: "ensure",
+      genericSubject: "Data",
+      specificSubjectName: "requirement metadata",
+      specificSubjectStatement: "store category, priority, status, owner, and version history",
+      specificSubjectModel: "normalized requirement repository model",
+      priority: "Medium",
+      status: "Draft",
+      sourceType: "Manual",
+      notes: "",
     },
   },
   "User interface requirements": {
     accent: "gold",
     shortName: "UI",
     intent: "Define screens, forms, menus, dashboards, and navigation behavior.",
-    prompt: "The software shall display/provide/render [UI component].",
-    verbs: ["display", "provide", "render", "show", "navigate"],
+    prompt: "The software shall ensure User Interface [specific interaction subject].",
+    verbs: ["ensure", "require", "adopt"],
     defaults: {
       softwareName: "SMART-S2D",
       obligation: "shall",
-      goalStatement: "display",
-      subjectName: "software taxonomy workspace",
-      subjectStatement: "to help analysts browse categories and write requirements",
-      subjectModel: "guided taxonomy navigation model",
+      relationVerb: "ensure",
+      genericSubject: "User Interface",
+      specificSubjectName: "software taxonomy workspace",
+      specificSubjectStatement: "display categories and related requirements for analyst review",
+      specificSubjectModel: "guided taxonomy navigation model",
+      priority: "Medium",
+      status: "Draft",
+      sourceType: "Manual",
+      notes: "",
     },
   },
   "Technical interface requirements": {
     accent: "violet",
     shortName: "Interface",
     intent: "Specify APIs, integrations, protocols, and external system communication.",
-    prompt: "The software shall integrate/connect/communicate with [external system/API].",
-    verbs: ["integrate", "connect", "communicate", "exchange", "authenticate"],
+    prompt: "The software shall ensure Technical Interface [specific integration subject].",
+    verbs: ["ensure", "require", "adopt"],
     defaults: {
       softwareName: "SMART-S2D",
       obligation: "shall",
-      goalStatement: "integrate",
-      subjectName: "Supabase Auth",
-      subjectStatement: "to authenticate users through secure tokens",
-      subjectModel: "OAuth-based Supabase authentication model",
+      relationVerb: "ensure",
+      genericSubject: "Technical Interface",
+      specificSubjectName: "Supabase Auth",
+      specificSubjectStatement: "authenticate users through secure tokens",
+      specificSubjectModel: "OAuth-based Supabase authentication model",
+      priority: "Medium",
+      status: "Draft",
+      sourceType: "Manual",
+      notes: "",
     },
   },
 };
@@ -88,7 +108,23 @@ export function getDefaultTemplateValues(categoryName) {
 
 export function buildTemplateStatement(categoryName, values) {
   const template = SOFTWARE_CATEGORY_TEMPLATES[categoryName];
-  const nextValues = { ...template.defaults, ...values };
+  const nextValues = normalizeTemplateValues({ ...template.defaults, ...values });
 
-  return `The "${nextValues.softwareName}" software ${nextValues.obligation} ${nextValues.goalStatement} "${nextValues.subjectName}" described as follows: "${nextValues.subjectStatement}" according to the model: "${nextValues.subjectModel}".`;
+  return `The "${nextValues.softwareName}" software ${nextValues.obligation} ${nextValues.relationVerb} "${nextValues.genericSubject}" "${nextValues.specificSubjectName}" described as follows: "${nextValues.specificSubjectStatement}" according to the model: "${nextValues.specificSubjectModel}".`;
+}
+
+export function buildHumanSummary(values) {
+  const nextValues = normalizeTemplateValues(values);
+  return `${nextValues.genericSubject}: ${nextValues.specificSubjectName} - ${nextValues.specificSubjectStatement}`;
+}
+
+function normalizeTemplateValues(values) {
+  return {
+    ...values,
+    relationVerb: values.relationVerb ?? values.goalStatement ?? "ensure",
+    genericSubject: values.genericSubject ?? "Function",
+    specificSubjectName: values.specificSubjectName ?? values.subjectName ?? "",
+    specificSubjectStatement: values.specificSubjectStatement ?? values.subjectStatement ?? "",
+    specificSubjectModel: values.specificSubjectModel ?? values.subjectModel ?? "",
+  };
 }
