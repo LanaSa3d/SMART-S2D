@@ -194,6 +194,20 @@ as $$
   );
 $$;
 
+create or replace function public.owns_org(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.organizations organization
+    where organization.id = org_id
+      and organization.created_by = auth.uid()
+  );
+$$;
+
 alter table public.profiles enable row level security;
 alter table public.organizations enable row level security;
 alter table public.organization_members enable row level security;
@@ -232,12 +246,7 @@ drop policy if exists "creator creates first membership" on public.organization_
 create policy "creator creates first membership" on public.organization_members
   for insert with check (
     user_id = auth.uid()
-    and exists (
-      select 1
-      from public.organizations organization
-      where organization.id = organization_id
-        and organization.created_by = auth.uid()
-    )
+    and public.owns_org(organization_id)
   );
 
 drop policy if exists "admins manage memberships" on public.organization_members;
@@ -326,6 +335,10 @@ on conflict (code) do update set
   name = excluded.name,
   description = excluded.description,
   sort_order = excluded.sort_order;
+
+delete from public.taxonomy_categories
+where parent_id is null
+  and subject_code in ('functional', 'data', 'user-interface', 'technical-interface');
 
 insert into public.taxonomy_categories (subject_code, name, description, sort_order) values
   ('functional', 'Authentication and processing', 'Authentication, validation, calculation, and business processing behavior.', 1),
