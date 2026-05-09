@@ -22,10 +22,32 @@ create table if not exists public.organizations (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   description text not null default '',
+  invite_code text not null default lpad(floor(random() * 1000000)::int::text, 6, '0'),
   created_by uuid not null references public.profiles(id) on delete cascade,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.organizations add column if not exists invite_code text;
+update public.organizations
+set invite_code = lpad(floor(random() * 1000000)::int::text, 6, '0')
+where invite_code is null or invite_code = '';
+alter table public.organizations alter column invite_code set default lpad(floor(random() * 1000000)::int::text, 6, '0');
+alter table public.organizations alter column invite_code set not null;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'organizations_invite_code_format'
+  ) then
+    alter table public.organizations
+      add constraint organizations_invite_code_format check (invite_code ~ '^[0-9]{6}$');
+  end if;
+end;
+$$;
+
+create unique index if not exists organizations_invite_code_key
+  on public.organizations(invite_code);
 
 create table if not exists public.organization_members (
   id uuid primary key default gen_random_uuid(),
@@ -194,6 +216,55 @@ as $$
   );
 $$;
 
+create or replace function public.current_org_role(org_id uuid)
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select member.role
+  from public.organization_members member
+  where member.organization_id = org_id
+    and member.user_id = auth.uid()
+  limit 1;
+$$;
+
+create or replace function public.can_manage_organization(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_org_role(org_id) in ('Admin', 'Project Manager');
+$$;
+
+create or replace function public.can_manage_users(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_org_role(org_id) in ('Admin', 'Project Manager');
+$$;
+
+create or replace function public.can_manage_projects(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_org_role(org_id) in ('Admin', 'Project Manager');
+$$;
+
+create or replace function public.can_review_requirements(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select public.current_org_role(org_id) in ('Admin', 'Project Manager', 'Analyst');
+$$;
+
 create or replace function public.owns_org(org_id uuid)
 returns boolean
 language sql
@@ -206,6 +277,115 @@ as $$
     where organization.id = org_id
       and organization.created_by = auth.uid()
   );
+$$;
+
+create or replace function public.join_organization_by_code(join_code text)
+returns table (
+  id uuid,
+  name text,
+  description text,
+  invite_code text,
+  created_by uuid,
+  created_at timestamptz,
+  updated_at timestamptz,
+  role text
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_org public.organizations%rowtype;
+begin
+  select *
+  into target_org
+  from public.organizations organization
+  where organization.invite_code = regexp_replace(join_code, '\D', '', 'g')
+  limit 1;
+
+  if target_org.id is null then
+    raise exception 'No organization was found for that invite code.';
+  end if;
+
+  insert into public.organization_members (organization_id, user_id, role) values
+    (target_org.id, auth.uid(), 'Software User')
+  on conflict (organization_id, user_id) do nothing;
+
+  return query
+  select
+    organization.id,
+    organization.name,
+    organization.description,
+    organization.invite_code,
+    organization.created_by,
+    organization.created_at,
+    organization.updated_at,
+    member.role
+  from public.organizations organization
+  join public.organization_members member on member.organization_id = organization.id
+  where organization.id = target_org.id
+    and member.user_id = auth.uid();
+end;
+$$;
+
+create or replace function public.add_organization_member_by_email(org_id uuid, member_email text, member_role text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_user uuid;
+begin
+  if not public.can_manage_users(org_id) then
+    raise exception 'Only organization managers can add members.';
+  end if;
+
+  if member_role not in ('Analyst', 'Software User', 'Project Manager') then
+    raise exception 'Invalid member role.';
+  end if;
+
+  select profile.id
+  into target_user
+  from public.profiles profile
+  where lower(profile.email) = lower(trim(member_email))
+  limit 1;
+
+  if target_user is null then
+    raise exception 'No SMART-S2D profile exists for that email yet.';
+  end if;
+
+  insert into public.organization_members (organization_id, user_id, role)
+  values (org_id, target_user, member_role)
+  on conflict (organization_id, user_id) do update set role = excluded.role;
+
+  return target_user;
+end;
+$$;
+
+create or replace function public.regenerate_organization_invite_code(org_id uuid, next_code text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  clean_code text := regexp_replace(next_code, '\D', '', 'g');
+begin
+  if not public.can_manage_organization(org_id) then
+    raise exception 'Only organization managers can regenerate invite codes.';
+  end if;
+
+  if clean_code !~ '^[0-9]{6}$' then
+    raise exception 'Invite code must be six digits.';
+  end if;
+
+  update public.organizations
+  set invite_code = clean_code
+  where id = org_id;
+
+  return clean_code;
+end;
 $$;
 
 alter table public.profiles enable row level security;
@@ -236,7 +416,12 @@ create policy "authenticated create organizations" on public.organizations
 
 drop policy if exists "members update organizations" on public.organizations;
 create policy "members update organizations" on public.organizations
-  for update using (public.is_org_member(id));
+  for update using (public.can_manage_organization(id))
+  with check (public.can_manage_organization(id));
+
+drop policy if exists "managers delete organizations" on public.organizations;
+create policy "managers delete organizations" on public.organizations
+  for delete using (public.can_manage_organization(id));
 
 drop policy if exists "members read memberships" on public.organization_members;
 create policy "members read memberships" on public.organization_members
@@ -251,12 +436,12 @@ create policy "creator creates first membership" on public.organization_members
 
 drop policy if exists "admins manage memberships" on public.organization_members;
 create policy "admins manage memberships" on public.organization_members
-  for update using (public.is_org_admin(organization_id))
-  with check (public.is_org_admin(organization_id));
+  for update using (public.can_manage_users(organization_id))
+  with check (public.can_manage_users(organization_id));
 
 drop policy if exists "admins delete memberships" on public.organization_members;
 create policy "admins delete memberships" on public.organization_members
-  for delete using (public.is_org_admin(organization_id));
+  for delete using (public.can_manage_users(organization_id));
 
 drop policy if exists "members read projects" on public.projects;
 create policy "members read projects" on public.projects
@@ -264,16 +449,16 @@ create policy "members read projects" on public.projects
 
 drop policy if exists "members create projects" on public.projects;
 create policy "members create projects" on public.projects
-  for insert with check (public.is_org_member(organization_id) and created_by = auth.uid());
+  for insert with check (public.can_manage_projects(organization_id) and created_by = auth.uid());
 
 drop policy if exists "members update projects" on public.projects;
 create policy "members update projects" on public.projects
-  for update using (public.is_org_member(organization_id))
-  with check (public.is_org_member(organization_id));
+  for update using (public.can_manage_projects(organization_id) or created_by = auth.uid())
+  with check (public.can_manage_projects(organization_id) or created_by = auth.uid());
 
 drop policy if exists "members delete projects" on public.projects;
 create policy "members delete projects" on public.projects
-  for delete using (public.is_org_member(organization_id));
+  for delete using (public.can_manage_projects(organization_id) or created_by = auth.uid());
 
 drop policy if exists "authenticated read taxonomy subjects" on public.taxonomy_subjects;
 create policy "authenticated read taxonomy subjects" on public.taxonomy_subjects
@@ -285,7 +470,7 @@ create policy "authenticated read taxonomy categories" on public.taxonomy_catego
 
 drop policy if exists "members read requirements" on public.requirements;
 create policy "members read requirements" on public.requirements
-  for select using (public.is_org_member(organization_id));
+  for select using (public.can_review_requirements(organization_id) or created_by = auth.uid());
 
 drop policy if exists "members create requirements" on public.requirements;
 create policy "members create requirements" on public.requirements
@@ -293,12 +478,12 @@ create policy "members create requirements" on public.requirements
 
 drop policy if exists "members update requirements" on public.requirements;
 create policy "members update requirements" on public.requirements
-  for update using (public.is_org_member(organization_id))
-  with check (public.is_org_member(organization_id));
+  for update using (public.can_review_requirements(organization_id) or created_by = auth.uid())
+  with check (public.can_review_requirements(organization_id) or created_by = auth.uid());
 
 drop policy if exists "members delete requirements" on public.requirements;
 create policy "members delete requirements" on public.requirements
-  for delete using (public.is_org_member(organization_id));
+  for delete using (public.can_review_requirements(organization_id) or created_by = auth.uid());
 
 drop policy if exists "members manage versions" on public.requirement_versions;
 create policy "members manage versions" on public.requirement_versions

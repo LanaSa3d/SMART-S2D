@@ -364,10 +364,6 @@ textarea:focus {
   font-size: clamp(26px, 4vw, 44px);
 }
 
-.role-field {
-  max-width: 210px;
-}
-
 .notice,
 .error-box {
   margin-bottom: 16px;
@@ -424,7 +420,8 @@ textarea:focus {
 }
 
 .count-pill,
-.status-badge {
+.status-badge,
+.role-chip {
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -438,11 +435,32 @@ textarea:focus {
   font-weight: 900;
 }
 
+.role-chip {
+  color: var(--blue);
+  background: rgba(119, 215, 255, 0.08);
+}
+
 .list-stack,
 .candidate-list {
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+
+.split-stack,
+.management-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.management-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.edit-block {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
 }
 
 .record-card,
@@ -460,6 +478,10 @@ textarea:focus {
   width: 100%;
   display: grid;
   gap: 5px;
+}
+
+.record-card .button-row {
+  margin-top: 6px;
 }
 
 .record-card span,
@@ -575,12 +597,30 @@ textarea:focus {
 
 .summary-box,
 .suggestion-box,
+.invite-panel,
 .detail-panel,
 blockquote {
   border: 1px solid var(--line);
   border-radius: 7px;
   background: #071a21;
   padding: 14px;
+}
+
+.invite-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.invite-panel span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invite-panel strong {
+  color: var(--green);
+  font-size: 34px;
+  letter-spacing: 0.08em;
 }
 
 blockquote {
@@ -666,7 +706,8 @@ th {
 
   .source-grid,
   .category-grid,
-  .metric-grid {
+  .metric-grid,
+  .management-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -691,6 +732,7 @@ th {
   .source-grid,
   .category-grid,
   .metric-grid,
+  .management-grid,
   .template-form,
   .filters {
     grid-template-columns: 1fr;

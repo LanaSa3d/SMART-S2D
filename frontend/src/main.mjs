@@ -1,6 +1,14 @@
 import { hasSupabaseConfig } from "./config.mjs";
+import {
+  canCreateProject,
+  canEditRequirement,
+  canManageOrganization,
+  canManageProject,
+  canManageUsers,
+  normalizeInviteCode,
+} from "./domain/accessModel.mjs";
 import { buildDashboardSummary, filterRequirements } from "./domain/dashboardModel.mjs";
-import { REQUIREMENT_PRIORITIES, REQUIREMENT_STATUSES, SOURCE_TYPES, USER_ROLES } from "./domain/entities.mjs";
+import { REQUIREMENT_PRIORITIES, REQUIREMENT_STATUSES, SOURCE_TYPES } from "./domain/entities.mjs";
 import { buildDocxHtml, buildPdfHtml, buildRequirementsXml } from "./domain/exportModel.mjs";
 import { parseCsvRequirements, parseDocxRequirements, parsePastedRequirements, parseTxtRequirements } from "./domain/importModel.mjs";
 import { suggestSmartCategory, validateRequirementWriting } from "./domain/smartRules.mjs";
@@ -13,19 +21,27 @@ import {
 } from "./domain/workflowModel.mjs";
 import { downloadTextFile } from "./services/downloads.mjs";
 import {
+  addOrganizationMemberByEmail,
   createOrganization,
   createProject,
   createReport,
   createRequirement,
+  deleteOrganization,
+  deleteProject,
   deleteRequirement,
   ensureProfile,
   getSession,
+  joinOrganizationByCode,
+  listOrganizationMembers,
   listOrganizations,
   listProjects,
   listRequirements,
+  regenerateOrganizationInviteCode,
   signInWithEmail,
   signOut,
   signUpWithEmail,
+  updateOrganization,
+  updateProject,
   updateRequirement,
 } from "./services/repository.mjs";
 
@@ -48,6 +64,7 @@ const state = {
   profile: null,
   organizations: [],
   selectedOrganization: null,
+  organizationMembers: [],
   projects: [],
   selectedProject: null,
   requirements: [],
@@ -68,6 +85,7 @@ const state = {
     validationState: "",
   },
   selectedRequirementId: "",
+  editingRequirementId: "",
   reportFormat: "XML",
   reportScope: "Project",
   authMode: "signIn",
@@ -108,9 +126,13 @@ async function loadProjects() {
     state.projects = [];
     state.selectedProject = null;
     state.requirements = [];
+    state.organizationMembers = [];
     return;
   }
 
+  state.organizationMembers = canManageUsers(state.selectedOrganization.role)
+    ? await listOrganizationMembers(state.selectedOrganization.id)
+    : [];
   state.projects = await listProjects(state.selectedOrganization.id);
   if (!state.selectedProject && state.projects.length) {
     state.selectedProject = state.projects[0];
@@ -265,12 +287,7 @@ function renderTopbar() {
         <h1>${escapeHtml(state.selectedProject?.name ?? "Open or create a SMART-S2D project")}</h1>
       </div>
       <div class="topbar-actions">
-        <label class="field compact role-field">
-          <span>Role</span>
-          <select data-action="set-role">
-            ${USER_ROLES.map((role) => `<option ${state.activeRole === role ? "selected" : ""}>${role}</option>`).join("")}
-          </select>
-        </label>
+        <span class="role-chip">${escapeHtml(state.activeRole)}</span>
         <button class="ghost-button" data-action="refresh">Refresh</button>
         <button class="secondary-button" data-action="sign-out">Sign out</button>
       </div>
@@ -287,12 +304,14 @@ function renderFeedback() {
 }
 
 function renderWorkspaceDashboard() {
+  const canManageOrg = canManageOrganization(state.selectedOrganization?.role);
+  const canCreateProjects = canCreateProject(state.selectedOrganization?.role);
   return `
     <section class="workspace-grid">
       <article class="panel hero-panel">
         <p class="eyebrow">Start here</p>
-        <h2>Create an organization, then open a project.</h2>
-        <p class="muted">SMART-S2D now stores work by account, organization, and project. Files are exports, not the primary workspace.</p>
+        <h2>Create, join, or open a SMART-S2D organization.</h2>
+        <p class="muted">Organizations are isolated by Supabase membership. Invite codes add regular users without exposing work from other accounts.</p>
       </article>
 
       <article class="panel">
@@ -300,11 +319,17 @@ function renderWorkspaceDashboard() {
           <h2>Organizations</h2>
           <span class="count-pill">${state.organizations.length}</span>
         </div>
-        <form class="stack-form">
-          <input data-form-field="organizationName" placeholder="Organization name" />
-          <input data-form-field="organizationDescription" placeholder="Description" />
-          <button class="primary-button" data-action="create-organization" type="button">Create organization</button>
-        </form>
+        <div class="split-stack">
+          <form class="stack-form">
+            <input data-form-field="organizationName" placeholder="Organization name" />
+            <input data-form-field="organizationDescription" placeholder="Description" />
+            <button class="primary-button" data-action="create-organization" type="button">Create organization</button>
+          </form>
+          <form class="stack-form">
+            <input data-form-field="inviteCode" inputmode="numeric" maxlength="6" placeholder="6 digit invite code" />
+            <button class="secondary-button" data-action="join-organization" type="button">Join organization</button>
+          </form>
+        </div>
         <div class="list-stack">
           ${state.organizations.map(renderOrganizationCard).join("") || `<p class="muted">No organizations yet.</p>`}
         </div>
@@ -316,39 +341,118 @@ function renderWorkspaceDashboard() {
           <span class="count-pill">${state.projects.length}</span>
         </div>
         ${
-          state.selectedOrganization
+          state.selectedOrganization && canCreateProjects
             ? `<form class="stack-form">
                 <input data-form-field="projectName" placeholder="Project name" />
                 <input data-form-field="projectDescription" placeholder="Description" />
                 <button class="primary-button" data-action="create-project" type="button">Create project</button>
               </form>`
+            : state.selectedOrganization
+              ? `<p class="muted">Your current organization role can view assigned work but cannot create projects.</p>`
             : `<p class="muted">Select or create an organization first.</p>`
         }
         <div class="list-stack">
           ${state.projects.map(renderProjectCard).join("") || `<p class="muted">No projects yet.</p>`}
         </div>
+        ${
+          state.selectedProject && canManageProject(state.selectedOrganization?.role, state.selectedProject, state.session?.user?.id)
+            ? `<form class="stack-form edit-block">
+                <input data-form-field="projectUpdateName" value="${escapeHtml(state.selectedProject.name)}" placeholder="Project name" />
+                <input data-form-field="projectUpdateDescription" value="${escapeHtml(state.selectedProject.description || "")}" placeholder="Description" />
+                <select data-form-field="projectUpdateStatus">
+                  ${["Active", "Archived"].map((status) => `<option ${state.selectedProject.status === status ? "selected" : ""}>${status}</option>`).join("")}
+                </select>
+                <button class="secondary-button" data-action="update-selected-project" type="button">Save project changes</button>
+              </form>`
+            : ""
+        }
       </article>
+
+      ${
+        state.selectedOrganization
+          ? `<article class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Organization controls</p>
+                  <h2>${escapeHtml(state.selectedOrganization.name)}</h2>
+                </div>
+                <span class="count-pill">${escapeHtml(state.selectedOrganization.role ?? "Member")}</span>
+              </div>
+              ${
+                canManageOrg
+                  ? renderOrganizationManagement()
+                  : `<p class="muted">Managers control invite codes and membership. You can work only inside organizations you created or joined.</p>`
+              }
+            </article>`
+          : ""
+      }
     </section>
   `;
 }
 
 function renderOrganizationCard(organization) {
   return `
-    <button class="record-card ${state.selectedOrganization?.id === organization.id ? "selected" : ""}" data-action="select-organization" data-id="${organization.id}">
+    <article class="record-card ${state.selectedOrganization?.id === organization.id ? "selected" : ""}">
       <strong>${escapeHtml(organization.name)}</strong>
       <span>${escapeHtml(organization.description || "No description")}</span>
-      <small>${escapeHtml(organization.role ?? "Member")}</small>
-    </button>
+      <small>${escapeHtml(organization.role ?? "Member")} ${organization.invite_code ? `- Code ${escapeHtml(organization.invite_code)}` : ""}</small>
+      <div class="button-row">
+        <button class="tiny-button" data-action="select-organization" data-id="${organization.id}" type="button">Open</button>
+        ${
+          canManageOrganization(organization.role)
+            ? `<button class="tiny-button" data-action="update-organization" data-id="${organization.id}" type="button">Update</button>
+               <button class="tiny-button danger" data-action="delete-organization" data-id="${organization.id}" type="button">Delete</button>`
+            : ""
+        }
+      </div>
+    </article>
   `;
 }
 
 function renderProjectCard(project) {
+  const canManage = canManageProject(state.selectedOrganization?.role, project, state.session?.user?.id);
   return `
-    <button class="record-card ${state.selectedProject?.id === project.id ? "selected" : ""}" data-action="select-project" data-id="${project.id}">
+    <article class="record-card ${state.selectedProject?.id === project.id ? "selected" : ""}">
       <strong>${escapeHtml(project.name)}</strong>
       <span>${escapeHtml(project.description || "No description")}</span>
       <small>${escapeHtml(project.status)}</small>
-    </button>
+      <div class="button-row">
+        <button class="tiny-button" data-action="select-project" data-id="${project.id}" type="button">Open</button>
+        ${
+          canManage
+            ? `<button class="tiny-button" data-action="update-project" data-id="${project.id}" type="button">Update</button>
+               <button class="tiny-button danger" data-action="delete-project" data-id="${project.id}" type="button">Delete</button>`
+            : ""
+        }
+      </div>
+    </article>
+  `;
+}
+
+function renderOrganizationManagement() {
+  return `
+    <div class="management-grid">
+      <form class="stack-form">
+        <input data-form-field="organizationUpdateName" value="${escapeHtml(state.selectedOrganization.name)}" placeholder="Organization name" />
+        <input data-form-field="organizationUpdateDescription" value="${escapeHtml(state.selectedOrganization.description || "")}" placeholder="Description" />
+        <button class="secondary-button" data-action="update-selected-organization" type="button">Save organization changes</button>
+      </form>
+      <div class="invite-panel">
+        <span>Invite code</span>
+        <strong>${escapeHtml(state.selectedOrganization.invite_code ?? "------")}</strong>
+        <button class="secondary-button" data-action="regenerate-invite-code" type="button">Generate new code</button>
+      </div>
+      <form class="stack-form">
+        <input data-form-field="memberEmail" type="email" placeholder="Member email" />
+        <select data-form-field="memberRole">
+          ${["Project Manager", "Analyst", "Software User"].map((role) => `<option>${role}</option>`).join("")}
+        </select>
+        <button class="secondary-button" data-action="add-member" type="button">Add member</button>
+      </form>
+      <div class="member-list">
+        ${state.organizationMembers.map((member) => `<div class="signal-row"><span>${escapeHtml(member.full_name || member.email)}</span><strong>${escapeHtml(member.role)}</strong></div>`).join("") || `<p class="muted">No members loaded.</p>`}
+      </div>
+    </div>
   `;
 }
 
@@ -522,6 +626,7 @@ function renderRequirementTable(title, requirements, wrap = true) {
 }
 
 function renderRequirementRow(requirement) {
+  const canEdit = canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id);
   return `
     <tr>
       <td>${escapeHtml(requirement.requirement_code)}</td>
@@ -533,7 +638,8 @@ function renderRequirementRow(requirement) {
       <td>${escapeHtml(requirement.validation_state)}</td>
       <td>
         <button class="tiny-button" data-action="select-requirement" data-id="${requirement.id}">View</button>
-        <button class="tiny-button danger" data-action="delete-requirement" data-id="${requirement.id}">Delete</button>
+        ${canEdit ? `<button class="tiny-button" data-action="edit-requirement" data-id="${requirement.id}">Edit</button>` : ""}
+        ${canEdit ? `<button class="tiny-button danger" data-action="delete-requirement" data-id="${requirement.id}">Delete</button>` : ""}
       </td>
     </tr>
   `;
@@ -542,6 +648,8 @@ function renderRequirementRow(requirement) {
 function renderSelectedRequirement() {
   const requirement = state.requirements.find((item) => item.id === state.selectedRequirementId);
   if (!requirement) return "";
+  if (state.editingRequirementId === requirement.id) return renderRequirementEditForm(requirement);
+  const canEdit = canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id);
 
   return `
     <aside class="detail-panel">
@@ -549,14 +657,72 @@ function renderSelectedRequirement() {
       <h2>${escapeHtml(requirement.title)}</h2>
       <blockquote>${escapeHtml(requirement.formal_statement)}</blockquote>
       <div class="button-row">
-        <select data-edit-field="status" data-id="${requirement.id}">
-          ${REQUIREMENT_STATUSES.map((status) => `<option ${requirement.status === status ? "selected" : ""}>${status}</option>`).join("")}
-        </select>
-        <select data-edit-field="priority" data-id="${requirement.id}">
-          ${REQUIREMENT_PRIORITIES.map((priority) => `<option ${requirement.priority === priority ? "selected" : ""}>${priority}</option>`).join("")}
-        </select>
+        ${
+          canEdit
+            ? `<button class="secondary-button" data-action="edit-requirement" data-id="${requirement.id}" type="button">Edit requirement</button>`
+            : ""
+        }
+        ${
+          canEdit
+            ? `<select data-edit-field="status" data-id="${requirement.id}">
+                ${REQUIREMENT_STATUSES.map((status) => `<option ${requirement.status === status ? "selected" : ""}>${status}</option>`).join("")}
+              </select>
+              <select data-edit-field="priority" data-id="${requirement.id}">
+                ${REQUIREMENT_PRIORITIES.map((priority) => `<option ${requirement.priority === priority ? "selected" : ""}>${priority}</option>`).join("")}
+              </select>`
+            : ""
+        }
       </div>
     </aside>
+  `;
+}
+
+function renderRequirementEditForm(requirement) {
+  return `
+    <aside class="detail-panel">
+      <p class="eyebrow">Edit ${escapeHtml(requirement.requirement_code)}</p>
+      <h2>Requirement editor</h2>
+      <form class="template-form">
+        ${renderRequirementEditField("title", "Title", requirement.title)}
+        ${renderRequirementEditField("software_name", "Software name", requirement.software_name)}
+        ${renderRequirementEditSelect("obligation", "Obligation", requirement.obligation, ["shall", "should", "must"])}
+        ${renderRequirementEditSelect("relation_verb", "Relation verb", requirement.relation_verb, ["ensure", "require", "adopt"])}
+        ${renderRequirementEditField("generic_subject", "Generic subject", requirement.generic_subject)}
+        ${renderRequirementEditField("specific_subject_name", "Specific subject name", requirement.specific_subject_name)}
+        ${renderRequirementEditField("specific_subject_statement", "Specific subject statement", requirement.specific_subject_statement, true)}
+        ${renderRequirementEditField("specific_subject_model", "Specific subject model", requirement.specific_subject_model)}
+        ${renderRequirementEditSelect("final_subject", "SMART subject", requirement.final_subject, Object.keys(SOFTWARE_CATEGORY_TEMPLATES))}
+        ${renderRequirementEditField("final_category", "Final category", requirement.final_category)}
+        ${renderRequirementEditSelect("priority", "Priority", requirement.priority, REQUIREMENT_PRIORITIES)}
+        ${renderRequirementEditSelect("status", "Status", requirement.status, REQUIREMENT_STATUSES)}
+        ${renderRequirementEditSelect("source_type", "Source type", requirement.source_type, SOURCE_TYPES)}
+        ${renderRequirementEditField("notes", "Notes", requirement.notes, true)}
+      </form>
+      <div class="button-row">
+        <button class="primary-button" data-action="save-requirement-edits" data-id="${requirement.id}" type="button">Save edits</button>
+        <button class="ghost-button" data-action="cancel-requirement-edit" type="button">Cancel</button>
+      </div>
+    </aside>
+  `;
+}
+
+function renderRequirementEditField(name, label, value, textarea = false) {
+  return `
+    <label class="field ${textarea ? "full" : ""}">
+      <span>${label}</span>
+      ${textarea ? `<textarea data-requirement-field="${name}" rows="3">${escapeHtml(value ?? "")}</textarea>` : `<input data-requirement-field="${name}" value="${escapeHtml(value ?? "")}" />`}
+    </label>
+  `;
+}
+
+function renderRequirementEditSelect(name, label, value, options) {
+  return `
+    <label class="field">
+      <span>${label}</span>
+      <select data-requirement-field="${name}">
+        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}
+      </select>
+    </label>
   `;
 }
 
@@ -738,16 +904,37 @@ async function handleAction(event) {
     return;
   }
 
-  if (action === "create-organization" || action === "create-project") {
+  if (
+    [
+      "create-organization",
+      "create-project",
+      "join-organization",
+      "update-selected-organization",
+      "add-member",
+      "update-selected-project",
+    ].includes(action)
+  ) {
     const formValues = {
       organizationName: getFieldValue("organizationName"),
       organizationDescription: getFieldValue("organizationDescription"),
+      organizationUpdateName: getFieldValue("organizationUpdateName"),
+      organizationUpdateDescription: getFieldValue("organizationUpdateDescription"),
+      inviteCode: getFieldValue("inviteCode"),
+      memberEmail: getFieldValue("memberEmail"),
+      memberRole: getFieldValue("memberRole"),
       projectName: getFieldValue("projectName"),
       projectDescription: getFieldValue("projectDescription"),
+      projectUpdateName: getFieldValue("projectUpdateName"),
+      projectUpdateDescription: getFieldValue("projectUpdateDescription"),
+      projectUpdateStatus: getFieldValue("projectUpdateStatus"),
     };
     await runWithUi(async () => {
       if (action === "create-organization") await handleCreateOrganization(formValues);
       if (action === "create-project") await handleCreateProject(formValues);
+      if (action === "join-organization") await handleJoinOrganization(formValues);
+      if (action === "update-selected-organization") await handleUpdateSelectedOrganization(formValues);
+      if (action === "add-member") await handleAddMember(formValues);
+      if (action === "update-selected-project") await handleUpdateSelectedProject(formValues);
     });
     return;
   }
@@ -757,14 +944,21 @@ async function handleAction(event) {
     if (action === "refresh") await refreshAll();
     if (action === "go-workspace") closeProject();
     if (action === "set-module") state.activeModule = element.dataset.module;
-    if (action === "set-role") state.activeRole = element.value;
     if (action === "select-organization") await handleSelectOrganization(element.dataset.id);
+    if (action === "update-organization") await handleSelectOrganization(element.dataset.id);
+    if (action === "delete-organization") await handleDeleteOrganization(element.dataset.id);
     if (action === "select-project") await handleSelectProject(element.dataset.id);
+    if (action === "update-project") await handleSelectProject(element.dataset.id);
+    if (action === "delete-project") await handleDeleteProject(element.dataset.id);
+    if (action === "regenerate-invite-code") await handleRegenerateInviteCode();
     if (action === "set-source") state.importSource = element.dataset.source;
     if (action === "parse-import") handleParseImport();
     if (action === "select-category") handleSelectCategory(element.dataset.category);
     if (action === "save-requirement") await handleSaveRequirement();
     if (action === "select-requirement") state.selectedRequirementId = element.dataset.id;
+    if (action === "edit-requirement") handleEditRequirement(element.dataset.id);
+    if (action === "save-requirement-edits") await handleSaveRequirementEdits(element.dataset.id);
+    if (action === "cancel-requirement-edit") state.editingRequirementId = "";
     if (action === "delete-requirement") await handleDeleteRequirement(element.dataset.id);
     if (action === "export-report") await handleExportReport();
   });
@@ -773,6 +967,11 @@ async function handleAction(event) {
 async function handleRequirementEdit(event) {
   const requirement = state.requirements.find((item) => item.id === event.target.dataset.id);
   if (!requirement) return;
+  if (!canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id)) {
+    state.error = "You do not have permission to edit this requirement.";
+    render();
+    return;
+  }
   await runWithUi(async () => {
     await updateRequirement(requirement.id, {
       [event.target.dataset.editField]: event.target.value,
@@ -826,6 +1025,17 @@ async function handleCreateOrganization(formValues) {
   state.notice = `${name} organization created.`;
 }
 
+async function handleJoinOrganization(formValues) {
+  const inviteCode = normalizeInviteCode(formValues.inviteCode);
+  if (inviteCode.length !== 6) throw new Error("Enter a valid 6 digit invite code.");
+  state.selectedOrganization = await joinOrganizationByCode(inviteCode);
+  if (!state.selectedOrganization) throw new Error("No organization was joined.");
+  state.activeRole = state.selectedOrganization.role ?? "Software User";
+  state.selectedProject = null;
+  await loadWorkspace();
+  state.notice = `Joined ${state.selectedOrganization.name}.`;
+}
+
 async function handleSelectOrganization(id) {
   state.selectedOrganization = state.organizations.find((organization) => organization.id === id) ?? null;
   state.activeRole = state.selectedOrganization?.role ?? state.activeRole;
@@ -833,8 +1043,68 @@ async function handleSelectOrganization(id) {
   await loadProjects();
 }
 
+async function handleUpdateSelectedOrganization(formValues) {
+  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!canManageOrganization(state.selectedOrganization.role)) {
+    throw new Error("Only organization managers can update organization details.");
+  }
+  const name = formValues.organizationUpdateName;
+  if (!name) throw new Error("Organization name is required.");
+  const updated = await updateOrganization(state.selectedOrganization.id, {
+    name,
+    description: formValues.organizationUpdateDescription,
+  });
+  state.selectedOrganization = { ...state.selectedOrganization, ...updated };
+  await loadWorkspace();
+  state.notice = `${name} organization updated.`;
+}
+
+async function handleDeleteOrganization(id) {
+  const organization = state.organizations.find((item) => item.id === id);
+  if (!organization) return;
+  if (!canManageOrganization(organization.role)) {
+    throw new Error("Only organization managers can delete organizations.");
+  }
+  await deleteOrganization(organization);
+  state.selectedOrganization = null;
+  state.selectedProject = null;
+  state.projects = [];
+  state.requirements = [];
+  await loadWorkspace();
+  state.notice = `${organization.name} organization deleted.`;
+}
+
+async function handleRegenerateInviteCode() {
+  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!canManageOrganization(state.selectedOrganization.role)) {
+    throw new Error("Only organization managers can generate invite codes.");
+  }
+  const inviteCode = await regenerateOrganizationInviteCode(state.selectedOrganization.id);
+  state.selectedOrganization = { ...state.selectedOrganization, invite_code: inviteCode };
+  await loadWorkspace();
+  state.notice = `New invite code generated: ${inviteCode}.`;
+}
+
+async function handleAddMember(formValues) {
+  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!canManageUsers(state.selectedOrganization.role)) {
+    throw new Error("Only organization managers can add users.");
+  }
+  if (!formValues.memberEmail) throw new Error("Member email is required.");
+  await addOrganizationMemberByEmail(
+    state.selectedOrganization.id,
+    formValues.memberEmail,
+    formValues.memberRole || "Software User",
+  );
+  await loadProjects();
+  state.notice = `${formValues.memberEmail} added as ${formValues.memberRole}.`;
+}
+
 async function handleCreateProject(formValues) {
   if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!canCreateProject(state.selectedOrganization.role)) {
+    throw new Error("Only organization managers can create projects.");
+  }
   const name = formValues.projectName;
   if (!name) throw new Error("Project name is required.");
   state.selectedProject = await createProject(
@@ -845,6 +1115,38 @@ async function handleCreateProject(formValues) {
   await loadProjects();
   state.activeModule = "dashboard";
   state.notice = `${name} project created.`;
+}
+
+async function handleUpdateSelectedProject(formValues) {
+  if (!state.selectedProject) throw new Error("Select a project first.");
+  if (!canManageProject(state.selectedOrganization?.role, state.selectedProject, state.session?.user?.id)) {
+    throw new Error("You do not have permission to update this project.");
+  }
+  const name = formValues.projectUpdateName;
+  if (!name) throw new Error("Project name is required.");
+  const updated = await updateProject(state.selectedProject.id, {
+    name,
+    description: formValues.projectUpdateDescription,
+    status: formValues.projectUpdateStatus || "Active",
+  });
+  state.selectedProject = updated;
+  await loadProjects();
+  state.notice = `${name} project updated.`;
+}
+
+async function handleDeleteProject(id) {
+  const project = state.projects.find((item) => item.id === id);
+  if (!project) return;
+  if (!canManageProject(state.selectedOrganization?.role, project, state.session?.user?.id)) {
+    throw new Error("You do not have permission to delete this project.");
+  }
+  await deleteProject(project);
+  if (state.selectedProject?.id === project.id) {
+    state.selectedProject = null;
+    state.requirements = [];
+  }
+  await loadProjects();
+  state.notice = `${project.name} project deleted.`;
 }
 
 async function handleSelectProject(id) {
@@ -917,9 +1219,71 @@ async function handleSaveRequirement() {
   state.notice = `${saved.requirement_code} saved to ${state.selectedProject.name}.`;
 }
 
+function handleEditRequirement(id) {
+  const requirement = state.requirements.find((item) => item.id === id);
+  if (!requirement) return;
+  if (!canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id)) {
+    throw new Error("You do not have permission to edit this requirement.");
+  }
+  state.selectedRequirementId = id;
+  state.editingRequirementId = id;
+}
+
+async function handleSaveRequirementEdits(id) {
+  const requirement = state.requirements.find((item) => item.id === id);
+  if (!requirement) return;
+  if (!canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id)) {
+    throw new Error("You do not have permission to edit this requirement.");
+  }
+
+  const values = getRequirementEditValues();
+  const templateValues = {
+    softwareName: values.software_name,
+    obligation: values.obligation,
+    relationVerb: values.relation_verb,
+    genericSubject: values.generic_subject,
+    specificSubjectName: values.specific_subject_name,
+    specificSubjectStatement: values.specific_subject_statement,
+    specificSubjectModel: values.specific_subject_model,
+  };
+  const formalStatement = buildTemplateStatement(values.final_subject, templateValues);
+  const validation = validateRequirementWriting(formalStatement);
+  const suggestion = suggestSmartCategory(formalStatement);
+
+  await updateRequirement(requirement.id, {
+    title: values.title,
+    human_summary: buildHumanSummary(templateValues),
+    formal_statement: formalStatement,
+    software_name: values.software_name,
+    obligation: values.obligation,
+    relation_verb: values.relation_verb,
+    generic_subject: values.generic_subject,
+    specific_subject_name: values.specific_subject_name,
+    specific_subject_statement: values.specific_subject_statement,
+    specific_subject_model: values.specific_subject_model,
+    suggested_subject: suggestion.subject,
+    suggested_category: suggestion.category,
+    final_subject: values.final_subject,
+    final_category: values.final_category,
+    priority: values.priority,
+    status: validation.isValid ? values.status : "Under Review",
+    source_type: values.source_type,
+    validation_state: validation.warnings.length ? "Warnings" : "Valid",
+    validation_warnings: validation.warnings,
+    notes: values.notes,
+  });
+  await loadRequirements();
+  state.selectedRequirementId = id;
+  state.editingRequirementId = "";
+  state.notice = `${requirement.requirement_code} updated.`;
+}
+
 async function handleDeleteRequirement(id) {
   const requirement = state.requirements.find((item) => item.id === id);
   if (!requirement) return;
+  if (!canEditRequirement(state.selectedOrganization?.role, requirement, state.session?.user?.id)) {
+    throw new Error("You do not have permission to delete this requirement.");
+  }
   await deleteRequirement(requirement);
   await loadRequirements();
   state.selectedRequirementId = "";
@@ -1029,6 +1393,14 @@ function getAuthValue(name) {
 
 function getFieldValue(name) {
   return root.querySelector(`[data-form-field="${name}"]`)?.value.trim() ?? "";
+}
+
+function getRequirementEditValues() {
+  const values = {};
+  root.querySelectorAll("[data-requirement-field]").forEach((field) => {
+    values[field.dataset.requirementField] = field.value.trim();
+  });
+  return values;
 }
 
 function slugify(value) {

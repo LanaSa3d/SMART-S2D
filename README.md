@@ -13,6 +13,7 @@ A web application for managing endogenous software requirements using the SMART 
 - **Taxonomy browser** — visual tree for Software requirements (Functional, Data, UI, Technical Interface)
 - **Audit logging** — every create/update/delete is tracked
 - **Role-based access** — Admin, Analyst, Software User, Project Manager
+- **Organization invite codes** — managers can generate six digit codes for controlled access
 
 ---
 
@@ -40,21 +41,7 @@ cd SMART-S2D
 4. Copy the entire contents of `database/supabase_phase1.sql` and paste it into the SQL editor
 5. Click **Run** — this creates all tables, triggers, RLS policies, and seed data
 
-> **Note:** If you run into permission errors when using the app, you can disable Row Level Security by running this in the SQL Editor:
->
-> ```sql
-> ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.organizations DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.organization_members DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.projects DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.taxonomy_subjects DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.taxonomy_categories DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.requirements DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.requirement_versions DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.imports DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.reports DISABLE ROW LEVEL SECURITY;
-> ALTER TABLE public.audit_logs DISABLE ROW LEVEL SECURITY;
-> ```
+> **Important:** Keep Row Level Security enabled. If a new account can see another account's organizations or projects, rerun `database/supabase_phase1.sql` in the SQL Editor so the latest membership policies are applied.
 
 ### 3. Disable email confirmation (recommended for testing)
 
@@ -116,18 +103,19 @@ No `npm install` is needed — the server is dependency-free and Supabase is loa
 ## How to Use
 
 1. **Create an account** — click "Create account", enter your name, email, and a password
-2. **Create an organization** — type a name and click "Create organization"
-3. **Create a project** — type a name and click "Create project"
-4. **Open the project** — click on it to enter the project workspace
-5. **Add requirements** — use the SMART Wizard to fill in the template and save
-6. **Browse** — use Dashboard, Requirements, Taxonomy, Search, and Reports from the sidebar
+2. **Create or join an organization** — create your own workspace or enter a six digit invite code
+3. **Manage members** — Admins and Project Managers can add Project Managers, Analysts, and Software Users by email
+4. **Create a project** — Project Managers and Admins can create, update, archive, or delete projects
+5. **Open the project** — click "Open" to enter the project workspace
+6. **Add or edit requirements** — use the SMART Wizard, then edit requirement details from the repository
+7. **Browse** — use Dashboard, Requirements, Taxonomy, Search, and Reports from the sidebar
 
 ---
 
 ## Run Tests
 
 ```bash
-node --test frontend/src/domain/*.test.mjs frontend/serverPaths.test.mjs
+node --test frontend/src/*.test.mjs frontend/src/domain/*.test.mjs frontend/serverPaths.test.mjs database/*.test.mjs
 ```
 
 ---

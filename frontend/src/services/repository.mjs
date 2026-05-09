@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabaseClient.mjs";
+import { generateInviteCode, normalizeInviteCode } from "../domain/accessModel.mjs";
 
 export async function getSession() {
   const client = getSupabaseClient();
@@ -54,10 +55,12 @@ export async function listOrganizations() {
     .order("created_at", { ascending: true });
   throwIfError(error);
 
-  return (data ?? []).map((row) => ({
-    ...row.organizations,
-    role: row.role,
-  }));
+  return (data ?? [])
+    .filter((row) => row.organizations)
+    .map((row) => ({
+      ...row.organizations,
+      role: row.role,
+    }));
 }
 
 export async function createOrganization(name, description = "") {
@@ -67,8 +70,8 @@ export async function createOrganization(name, description = "") {
 
   const { data: organization, error: organizationError } = await client
     .from("organizations")
-    .insert({ name, description, created_by: user.id })
-    .select("id")
+    .insert({ name, description, invite_code: generateInviteCode(), created_by: user.id })
+    .select()
     .single();
   throwIfError(organizationError);
 
@@ -79,7 +82,78 @@ export async function createOrganization(name, description = "") {
   });
   throwIfError(memberError);
 
-  return { id: organization.id, name, description, created_by: user.id, role: "Admin" };
+  return { ...organization, role: "Admin" };
+}
+
+export async function updateOrganization(id, payload) {
+  const client = getSupabaseClient();
+  const { data, error } = await client
+    .from("organizations")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+  throwIfError(error);
+  await writeAuditLog({
+    organization_id: data.id,
+    action: "update",
+    entity_type: "organization",
+    entity_id: data.id,
+    after_data: data,
+  });
+  return data;
+}
+
+export async function deleteOrganization(organization) {
+  const client = getSupabaseClient();
+  const { error } = await client.from("organizations").delete().eq("id", organization.id);
+  throwIfError(error);
+}
+
+export async function joinOrganizationByCode(inviteCode) {
+  const client = getSupabaseClient();
+  const { data, error } = await client
+    .rpc("join_organization_by_code", { join_code: normalizeInviteCode(inviteCode) });
+  throwIfError(error);
+  return data?.[0] ?? null;
+}
+
+export async function regenerateOrganizationInviteCode(organizationId) {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc("regenerate_organization_invite_code", {
+    org_id: organizationId,
+    next_code: generateInviteCode(),
+  });
+  throwIfError(error);
+  return data;
+}
+
+export async function listOrganizationMembers(organizationId) {
+  const client = getSupabaseClient();
+  const { data, error } = await client
+    .from("organization_members")
+    .select("id, user_id, role, profiles(full_name,email)")
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: true });
+  throwIfError(error);
+  return (data ?? []).map((member) => ({
+    id: member.id,
+    user_id: member.user_id,
+    role: member.role,
+    full_name: member.profiles?.full_name ?? "",
+    email: member.profiles?.email ?? "",
+  }));
+}
+
+export async function addOrganizationMemberByEmail(organizationId, email, role) {
+  const client = getSupabaseClient();
+  const { data, error } = await client.rpc("add_organization_member_by_email", {
+    org_id: organizationId,
+    member_email: email,
+    member_role: role,
+  });
+  throwIfError(error);
+  return data;
 }
 
 export async function listProjects(organizationId) {
@@ -111,6 +185,35 @@ export async function createProject(organizationId, name, description = "") {
     after_data: data,
   });
   return data;
+}
+
+export async function updateProject(id, payload) {
+  const client = getSupabaseClient();
+  const { data, error } = await client.from("projects").update(payload).eq("id", id).select().single();
+  throwIfError(error);
+  await writeAuditLog({
+    organization_id: data.organization_id,
+    project_id: data.id,
+    action: "update",
+    entity_type: "project",
+    entity_id: data.id,
+    after_data: data,
+  });
+  return data;
+}
+
+export async function deleteProject(project) {
+  const client = getSupabaseClient();
+  const { error } = await client.from("projects").delete().eq("id", project.id);
+  throwIfError(error);
+  await writeAuditLog({
+    organization_id: project.organization_id,
+    project_id: project.id,
+    action: "delete",
+    entity_type: "project",
+    entity_id: project.id,
+    after_data: project,
+  });
 }
 
 export async function listRequirements(projectId) {
