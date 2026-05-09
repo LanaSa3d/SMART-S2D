@@ -1,4 +1,14 @@
 import { buildDashboardSummary, filterRequirements } from "./domain/dashboardModel.mjs";
+import {
+  connectOrganization,
+  createFile,
+  openFile,
+  saveRequirement as saveRequirementAction,
+  selectCategory,
+  selectProject,
+  selectTaxonomy,
+  useVerb,
+} from "./domain/appState.mjs";
 import { suggestSmartCategory, validateRequirementWriting } from "./domain/smartRules.mjs";
 import {
   REQUIREMENT_TAXONOMIES,
@@ -15,7 +25,7 @@ const organizations = [
   { id: "org-3", name: "Requirements Studio", projects: 4, role: "Admin" },
 ];
 
-const projects = [
+let projects = [
   {
     id: "proj-1",
     name: "SMART Repository",
@@ -220,7 +230,7 @@ function renderWorkspaceHome(summary) {
               <button class="project-card ${project.id === state.selectedProject.id ? "active" : ""}" data-action="select-project" data-project="${project.id}">
                 <span>${project.organization}</span>
                 <strong>${project.name}</strong>
-                <small>${project.requirements} requirements · ${project.updatedAt}</small>
+                <small>${project.requirements} requirements - ${project.updatedAt}</small>
               </button>
             `,
           )
@@ -321,7 +331,7 @@ function renderTemplateWriter(statement, writingFeedback, suggestion) {
           <blockquote>${escapeHtml(statement)}</blockquote>
           <div class="suggestion-box">
             <strong>${suggestion.subject}</strong>
-            <span>${suggestion.category} · ${Math.round(suggestion.confidence * 100)}% confidence</span>
+            <span>${suggestion.category} - ${Math.round(suggestion.confidence * 100)}% confidence</span>
           </div>
           <div class="verb-row">
             ${template.verbs.map((verb) => `<button data-action="use-verb" data-verb="${verb}">${verb}</button>`).join("")}
@@ -526,86 +536,46 @@ function handleAction(event) {
   const action = button.dataset.action;
 
   if (action === "select-project") {
-    state = {
-      ...state,
-      selectedProject: projects.find((project) => project.id === button.dataset.project),
-      notice: "",
-    };
+    state = selectProject(state, projects, button.dataset.project);
   }
 
   if (action === "create-file") {
-    const nextProject = {
-      id: `proj-${projects.length + 1}`,
-      name: `Untitled SMART File ${projects.length + 1}`,
-      organization: "SMART Research Lab",
-      updatedAt: "Now",
-      requirements: 0,
-    };
-    projects.unshift(nextProject);
-    state = { ...state, selectedProject: nextProject, notice: "New SMART file created." };
+    const result = createFile(state, projects);
+    projects = result.projects;
+    state = result.state;
   }
 
   if (action === "open-file") {
-    state = { ...state, selectedProject: projects[0], notice: "Opened the most recent SMART file." };
+    state = openFile(state, projects);
   }
 
   if (action === "connect-org") {
-    state = { ...state, notice: "Organization connection is prepared for the Supabase Auth phase." };
+    state = connectOrganization(state);
   }
 
   if (action === "select-taxonomy") {
-    const taxonomy = REQUIREMENT_TAXONOMIES.find((item) => item.id === button.dataset.taxonomy);
-    state = taxonomy.enabled
-      ? { ...state, selectedTaxonomy: taxonomy.id, notice: "" }
-      : { ...state, notice: `${taxonomy.name} will be available in a future version.` };
+    state = selectTaxonomy(state, button.dataset.taxonomy);
   }
 
   if (action === "select-category") {
-    state = {
-      ...state,
-      selectedCategory: button.dataset.category,
-      templateValues: getDefaultTemplateValues(button.dataset.category),
-      notice: "",
-    };
+    state = selectCategory(state, button.dataset.category);
   }
 
   if (action === "use-verb") {
-    state = {
-      ...state,
-      templateValues: { ...state.templateValues, goalStatement: button.dataset.verb },
-    };
+    state = useVerb(state, button.dataset.verb);
   }
 
   if (action === "save-requirement") {
-    saveRequirement();
+    const result = saveRequirementAction(state, requirements);
+    requirements = result.requirements;
+    state = result.state;
   }
 
   render();
 }
 
-function saveRequirement() {
-  const statement = buildTemplateStatement(state.selectedCategory, state.templateValues);
-  const suggestion = suggestSmartCategory(statement);
-  const nextRequirement = {
-    id: `REQ-${String(requirements.length + 1).padStart(3, "0")}`,
-    title: `${state.templateValues.goalStatement} ${state.templateValues.subjectName}`,
-    description: statement,
-    subject: state.selectedCategory,
-    category: suggestion.category,
-    project: state.selectedProject.name,
-    priority: "Medium",
-    status: "Categorized",
-  };
-
-  requirements = [nextRequirement, ...requirements];
-  state = {
-    ...state,
-    notice: `${nextRequirement.id} saved to ${state.selectedProject.name}.`,
-  };
-}
-
 function escapeHtml(value) {
-  return String(value ?? "")
+  return String(value - "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

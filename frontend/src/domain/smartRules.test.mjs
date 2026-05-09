@@ -68,12 +68,21 @@ describe("guided requirement writing validation", () => {
     assert.deepEqual(result.warnings, []);
   });
 
+  it("accepts a DS0-style software subject template statement", () => {
+    const result = validateRequirementWriting(
+      'The "SMART-S2D" software shall store "requirement metadata" described as follows: "including priority and status" according to the model: "repository model".',
+    );
+
+    assert.equal(result.isValid, true);
+    assert.deepEqual(result.warnings, []);
+  });
+
   it("warns when a requirement is vague, short, and missing a shall pattern", () => {
     const result = validateRequirementWriting("Make it better.");
 
     assert.equal(result.isValid, false);
     assert.deepEqual(result.warnings, [
-      "Use the required pattern: The software shall [action] [target/object].",
+      'Use a required pattern: The software shall [action] [target/object], or The "[software_name]" software shall [action] "[subject]".',
       "Requirement is too short to be reviewable.",
       "Avoid vague wording such as better, easy, fast, user-friendly, or etc.",
       "Add a concrete action verb such as verify, store, display, retrieve, or integrate.",

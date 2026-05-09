@@ -16,6 +16,9 @@ Operation and development requirements are documented as out of scope for this p
 - Browser-based React prototype shell in `frontend/`
 - Rule-based SMART subject/category suggestion
 - Guided requirement writing validation
+- Landing workspace with recent projects, organizations, Create File, Open File, and Connect Organization actions
+- Taxonomy chooser with Software active and Operation/Development disabled for future phases
+- Category-specific DS0-inspired templates for Functional, Data, User Interface, and Technical Interface requirements
 - Dashboard summary and retrieval filtering
 - Software-only taxonomy tree
 - Supabase/PostgreSQL schema in `database/schema.sql`

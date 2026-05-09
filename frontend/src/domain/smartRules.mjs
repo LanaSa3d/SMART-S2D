@@ -98,8 +98,10 @@ export function validateRequirementWriting(requirementText) {
   const normalizedText = normalize(requirementText);
   const warnings = [];
 
-  if (!normalizedText.startsWith("the software shall ")) {
-    warnings.push("Use the required pattern: The software shall [action] [target/object].");
+  if (!hasSmartRequirementPattern(normalizedText)) {
+    warnings.push(
+      'Use a required pattern: The software shall [action] [target/object], or The "[software_name]" software shall [action] "[subject]".',
+    );
   }
 
   if (normalizedText.split(/\s+/).filter(Boolean).length < 6) {
@@ -132,4 +134,11 @@ function normalize(value) {
 
 function countUnrelatedActions(normalizedText) {
   return ACTION_VERBS.filter((verb) => normalizedText.includes(verb)).length;
+}
+
+function hasSmartRequirementPattern(normalizedText) {
+  return (
+    normalizedText.startsWith("the software shall ") ||
+    /^the\s+".+"\s+software\s+(shall|should|must)\s+/.test(normalizedText)
+  );
 }
