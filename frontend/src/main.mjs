@@ -726,9 +726,16 @@ async function handleAction(event) {
     return;
   }
 
+  if (action === "sign-in" || action === "sign-up") {
+    const authValues = getAuthValues();
+    await runWithUi(async () => {
+      if (action === "sign-in") await handleSignIn(authValues);
+      if (action === "sign-up") await handleSignUp(authValues);
+    });
+    return;
+  }
+
   await runWithUi(async () => {
-    if (action === "sign-in") await handleSignIn();
-    if (action === "sign-up") await handleSignUp();
     if (action === "sign-out") await handleSignOut();
     if (action === "refresh") await refreshAll();
     if (action === "go-workspace") closeProject();
@@ -760,8 +767,7 @@ async function handleRequirementEdit(event) {
   });
 }
 
-async function handleSignIn() {
-  const values = getAuthValues();
+async function handleSignIn(values) {
   requireAuthFields(values, false);
   const result = await signInWithEmail(values.email, values.password);
   state.session = result.session;
@@ -772,8 +778,7 @@ async function handleSignIn() {
   state.notice = "Signed in.";
 }
 
-async function handleSignUp() {
-  const values = getAuthValues();
+async function handleSignUp(values) {
   requireAuthFields(values, true);
   const result = await signUpWithEmail(values.email, values.password, values.fullName);
   state.session = result.session;
