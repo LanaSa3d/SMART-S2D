@@ -674,8 +674,11 @@ function renderReportSelect(name, label, options) {
 
 function bindEvents() {
   root.querySelectorAll("[data-action]").forEach((element) => {
-    element.addEventListener("click", handleAction);
-    element.addEventListener("change", handleAction);
+    if (element.tagName === "SELECT") {
+      element.addEventListener("change", handleAction);
+    } else {
+      element.addEventListener("click", handleAction);
+    }
   });
 
   root.querySelectorAll("[data-template-field]").forEach((element) => {
@@ -735,15 +738,27 @@ async function handleAction(event) {
     return;
   }
 
+  if (action === "create-organization" || action === "create-project") {
+    const formValues = {
+      organizationName: getFieldValue("organizationName"),
+      organizationDescription: getFieldValue("organizationDescription"),
+      projectName: getFieldValue("projectName"),
+      projectDescription: getFieldValue("projectDescription"),
+    };
+    await runWithUi(async () => {
+      if (action === "create-organization") await handleCreateOrganization(formValues);
+      if (action === "create-project") await handleCreateProject(formValues);
+    });
+    return;
+  }
+
   await runWithUi(async () => {
     if (action === "sign-out") await handleSignOut();
     if (action === "refresh") await refreshAll();
     if (action === "go-workspace") closeProject();
     if (action === "set-module") state.activeModule = element.dataset.module;
     if (action === "set-role") state.activeRole = element.value;
-    if (action === "create-organization") await handleCreateOrganization();
     if (action === "select-organization") await handleSelectOrganization(element.dataset.id);
-    if (action === "create-project") await handleCreateProject();
     if (action === "select-project") await handleSelectProject(element.dataset.id);
     if (action === "set-source") state.importSource = element.dataset.source;
     if (action === "parse-import") handleParseImport();
@@ -802,10 +817,10 @@ async function handleSignOut() {
   state.selectedProject = null;
 }
 
-async function handleCreateOrganization() {
-  const name = getFieldValue("organizationName");
+async function handleCreateOrganization(formValues) {
+  const name = formValues.organizationName;
   if (!name) throw new Error("Organization name is required.");
-  state.selectedOrganization = await createOrganization(name, getFieldValue("organizationDescription"));
+  state.selectedOrganization = await createOrganization(name, formValues.organizationDescription);
   state.activeRole = state.selectedOrganization.role ?? "Admin";
   await loadWorkspace();
   state.notice = `${name} organization created.`;
@@ -818,14 +833,14 @@ async function handleSelectOrganization(id) {
   await loadProjects();
 }
 
-async function handleCreateProject() {
+async function handleCreateProject(formValues) {
   if (!state.selectedOrganization) throw new Error("Select an organization first.");
-  const name = getFieldValue("projectName");
+  const name = formValues.projectName;
   if (!name) throw new Error("Project name is required.");
   state.selectedProject = await createProject(
     state.selectedOrganization.id,
     name,
-    getFieldValue("projectDescription"),
+    formValues.projectDescription,
   );
   await loadProjects();
   state.activeModule = "dashboard";
