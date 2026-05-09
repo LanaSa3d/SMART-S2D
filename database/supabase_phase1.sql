@@ -228,7 +228,7 @@ create policy "profiles own row" on public.profiles
 
 drop policy if exists "members read organizations" on public.organizations;
 create policy "members read organizations" on public.organizations
-  for select using (public.is_org_member(id));
+  for select using (public.is_org_member(id) or created_by = auth.uid());
 
 drop policy if exists "authenticated create organizations" on public.organizations;
 create policy "authenticated create organizations" on public.organizations
