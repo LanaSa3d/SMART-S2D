@@ -35,12 +35,12 @@ Open:
 http://localhost:5173
 ```
 
-The browser loads React from an ESM CDN for this first demonstrable slice. The next phase can convert this to a Vite-installed React app once `npm` is available in the terminal.
+The current browser prototype is dependency-free at runtime so it works locally without `npm` or CDN access. The next phase can convert this shell to a Vite-installed React app once `npm` is available in the terminal.
 
 ## Verify Available Tests
 
 ```powershell
-node --test frontend/src/domain/*.test.mjs
+node --test frontend/src/domain/*.test.mjs frontend/serverPaths.test.mjs
 ```
 
 ## Planned Full Stack

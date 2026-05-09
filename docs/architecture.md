@@ -29,7 +29,7 @@ The frontend owns the academic demo experience. The backend owns persistence, au
 - `src/main.mjs`: React screen composition for dashboard, requirement writing, taxonomy, repository, reports, and audit trail.
 - `src/styles.css`: responsive professional interface.
 
-The current prototype uses React via CDN so it can run with only Node.js available. The target production-ready frontend should move to Vite + TypeScript once `npm` is available.
+The current prototype uses local browser modules so it can run with only Node.js available and without CDN access. The target production-ready frontend should move to Vite + React + TypeScript once `npm` is available.
 
 ## Backend Architecture
 
