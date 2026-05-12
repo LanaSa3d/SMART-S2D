@@ -10,7 +10,7 @@ export const REQUIREMENT_STATUSES = [
 
 export const REQUIREMENT_PRIORITIES = ["Low", "Medium", "High", "Critical"];
 
-export const SOURCE_TYPES = ["Manual", "Paste", "TXT", "CSV", "DOCX"];
+export const SOURCE_TYPES = ["Manual", "Paste", "TXT", "DOCX"];
 
 export const VALIDATION_STATES = ["Valid", "Warnings", "Blocked"];
 

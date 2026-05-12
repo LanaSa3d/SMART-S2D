@@ -9,8 +9,8 @@ import {
 } from "./domain/accessModel.mjs";
 import { buildDashboardSummary, filterRequirements } from "./domain/dashboardModel.mjs";
 import { REQUIREMENT_PRIORITIES, REQUIREMENT_STATUSES, SOURCE_TYPES } from "./domain/entities.mjs";
-import { buildDocxHtml, buildPdfHtml, buildRequirementsXml } from "./domain/exportModel.mjs";
-import { parseCsvRequirements, parseDocxRequirements, parsePastedRequirements, parseTxtRequirements } from "./domain/importModel.mjs";
+import { buildDocxHtml, buildRequirementsXml } from "./domain/exportModel.mjs";
+import { parseDocxRequirements, parsePastedRequirements, parseTxtRequirements } from "./domain/importModel.mjs";
 import { suggestSmartCategory, validateRequirementWriting } from "./domain/smartRules.mjs";
 import {
   REQUIREMENT_TAXONOMIES,
@@ -49,13 +49,27 @@ const root = document.getElementById("root");
 
 const MODULES = [
   ["dashboard", "Dashboard"],
-  ["wizard", "SMART Wizard"],
+  ["wizard", "SMART Requirement Template"],
   ["requirements", "Requirements"],
   ["taxonomy", "Taxonomy"],
   ["search", "Search"],
   ["reports", "Reports"],
   ["settings", "Admin/Settings"],
 ];
+
+const SOURCE_LABELS = {
+  Manual: "Form editor",
+  Paste: "Text editor",
+  TXT: "Import XML",
+  DOCX: "Import DOCX",
+};
+
+const SUBJECT_LABELS = {
+  "Functional requirements": "Function requirements",
+  "Data requirements": "Data requirements",
+  "User interface requirements": "User Interface requirements",
+  "Technical interface requirements": "Technical Interface requirements",
+};
 
 const state = {
   initialized: false,
@@ -209,7 +223,7 @@ function renderAuth() {
             <h1>Requirements command workspace</h1>
           </div>
         </div>
-        <p class="muted">Sign in or create an account to manage organizations, projects, and SMART/R2F requirements.</p>
+        <p class="muted">Sign in or create an account to manage companies, projects, and SMART/R2F requirements.</p>
         ${renderFeedback()}
         <div class="auth-tabs">
           <button class="${state.authMode === "signIn" ? "active" : ""}" data-action="set-auth-mode" data-mode="signIn" type="button">Sign in</button>
@@ -265,7 +279,7 @@ function renderSidebar() {
       </nav>
 
       <section class="sidebar-block">
-        <div class="section-title">Organization</div>
+        <div class="section-title">Company</div>
         <strong>${escapeHtml(state.selectedOrganization?.name ?? "None selected")}</strong>
         <span>${escapeHtml(state.activeRole)}</span>
       </section>
@@ -310,28 +324,27 @@ function renderWorkspaceDashboard() {
     <section class="workspace-grid">
       <article class="panel hero-panel">
         <p class="eyebrow">Start here</p>
-        <h2>Create, join, or open a SMART-S2D organization.</h2>
-        <p class="muted">Organizations are isolated by Supabase membership. Invite codes add regular users without exposing work from other accounts.</p>
+        <h2>Create, join, or open a SMART-S2D company.</h2>
       </article>
 
       <article class="panel">
         <div class="section-heading">
-          <h2>Organizations</h2>
+          <h2>Companies</h2>
           <span class="count-pill">${state.organizations.length}</span>
         </div>
         <div class="split-stack">
           <form class="stack-form">
-            <input data-form-field="organizationName" placeholder="Organization name" />
+            <input data-form-field="organizationName" placeholder="Company name" />
             <input data-form-field="organizationDescription" placeholder="Description" />
-            <button class="primary-button" data-action="create-organization" type="button">Create organization</button>
+            <button class="primary-button" data-action="create-organization" type="button">Create company</button>
           </form>
           <form class="stack-form">
             <input data-form-field="inviteCode" inputmode="numeric" maxlength="6" placeholder="6 digit invite code" />
-            <button class="secondary-button" data-action="join-organization" type="button">Join organization</button>
+            <button class="secondary-button" data-action="join-organization" type="button">Join company</button>
           </form>
         </div>
         <div class="list-stack">
-          ${state.organizations.map(renderOrganizationCard).join("") || `<p class="muted">No organizations yet.</p>`}
+          ${state.organizations.map(renderOrganizationCard).join("") || `<p class="muted">No companies yet.</p>`}
         </div>
       </article>
 
@@ -348,8 +361,8 @@ function renderWorkspaceDashboard() {
                 <button class="primary-button" data-action="create-project" type="button">Create project</button>
               </form>`
             : state.selectedOrganization
-              ? `<p class="muted">Your current organization role can view assigned work but cannot create projects.</p>`
-            : `<p class="muted">Select or create an organization first.</p>`
+              ? `<p class="muted">Your current company role can view assigned work but cannot create projects.</p>`
+            : `<p class="muted">Select or create a company first.</p>`
         }
         <div class="list-stack">
           ${state.projects.map(renderProjectCard).join("") || `<p class="muted">No projects yet.</p>`}
@@ -373,7 +386,7 @@ function renderWorkspaceDashboard() {
           ? `<article class="panel">
               <div class="section-heading">
                 <div>
-                  <p class="eyebrow">Organization controls</p>
+                  <p class="eyebrow">Company controls</p>
                   <h2>${escapeHtml(state.selectedOrganization.name)}</h2>
                 </div>
                 <span class="count-pill">${escapeHtml(state.selectedOrganization.role ?? "Member")}</span>
@@ -381,7 +394,7 @@ function renderWorkspaceDashboard() {
               ${
                 canManageOrg
                   ? renderOrganizationManagement()
-                  : `<p class="muted">Managers control invite codes and membership. You can work only inside organizations you created or joined.</p>`
+                  : `<p class="muted">Managers control invite codes and membership. You can work only inside companies you created or joined.</p>`
               }
             </article>`
           : ""
@@ -433,9 +446,9 @@ function renderOrganizationManagement() {
   return `
     <div class="management-grid">
       <form class="stack-form">
-        <input data-form-field="organizationUpdateName" value="${escapeHtml(state.selectedOrganization.name)}" placeholder="Organization name" />
+        <input data-form-field="organizationUpdateName" value="${escapeHtml(state.selectedOrganization.name)}" placeholder="Company name" />
         <input data-form-field="organizationUpdateDescription" value="${escapeHtml(state.selectedOrganization.description || "")}" placeholder="Description" />
-        <button class="secondary-button" data-action="update-selected-organization" type="button">Save organization changes</button>
+        <button class="secondary-button" data-action="update-selected-organization" type="button">Save company changes</button>
       </form>
       <div class="invite-panel">
         <span>Invite code</span>
@@ -468,24 +481,25 @@ function renderProjectModule() {
 
 function renderDashboard() {
   const summary = buildDashboardSummary(mapRequirementsForDomain(state.requirements));
-  const warnings = state.requirements.filter((requirement) => requirement.validation_state !== "Valid").length;
+  const statusCounts = summary.byStatus;
   return `
     <section class="panel">
       <div class="section-heading">
         <div>
           <p class="eyebrow">Project dashboard</p>
-          <h2>SMART requirement distribution</h2>
+          <h2>Requirement Distribution</h2>
         </div>
         <button class="primary-button" data-action="set-module" data-module="wizard">New requirement</button>
       </div>
       <div class="metric-grid">
         <article class="metric"><span>Total</span><strong>${summary.totalRequirements}</strong></article>
-        <article class="metric"><span>Categorized</span><strong>${summary.categorizedRequirements}</strong></article>
-        <article class="metric"><span>Needs review</span><strong>${summary.uncategorizedRequirements}</strong></article>
-        <article class="metric"><span>Warnings</span><strong>${warnings}</strong></article>
+        <article class="metric"><span>Draft</span><strong>${statusCounts.Draft ?? 0}</strong></article>
+        <article class="metric"><span>Need Review</span><strong>${statusCounts["Under Review"] ?? 0}</strong></article>
+        <article class="metric"><span>Approved</span><strong>${statusCounts.Approved ?? 0}</strong></article>
+        <article class="metric"><span>Rejected</span><strong>${statusCounts.Rejected ?? 0}</strong></article>
       </div>
       <div class="distribution-grid">
-        ${Object.entries(summary.bySubject).map(([subject, count]) => `<div class="signal-row"><span>${escapeHtml(subject)}</span><strong>${count}</strong></div>`).join("") || `<p class="muted">No requirements yet.</p>`}
+        ${Object.entries(summary.bySubject).map(([subject, count]) => `<div class="signal-row"><span>${escapeHtml(displaySubjectName(subject))}</span><strong>${count}</strong></div>`).join("") || `<p class="muted">No requirements yet.</p>`}
       </div>
     </section>
   `;
@@ -502,13 +516,13 @@ function renderWizard() {
       <article class="panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">SMART Wizard</p>
-            <h2>Create or import requirement candidates</h2>
+            <p class="eyebrow">SMART Requirement Template</p>
+            <h2>Create or Import Requirement</h2>
           </div>
           <span class="count-pill">Software taxonomy</span>
         </div>
         <div class="source-grid">
-          ${["Manual", "Paste", "TXT", "CSV", "DOCX"].map((source) => `<button class="source-card ${state.importSource === source ? "selected" : ""}" data-action="set-source" data-source="${source}">${source}</button>`).join("")}
+          ${SOURCE_TYPES.map((source) => `<button class="source-card ${state.importSource === source ? "selected" : ""}" data-action="set-source" data-source="${source}">${escapeHtml(displaySourceName(source))}</button>`).join("")}
         </div>
         ${state.importSource === "Manual" ? "" : renderImportPanel()}
         <div class="taxonomy-strip">
@@ -518,8 +532,7 @@ function renderWizard() {
           ${Object.entries(SOFTWARE_CATEGORY_TEMPLATES).map(
             ([category, template]) => `
               <button class="category-card ${state.selectedCategory === category ? "selected" : ""}" data-action="select-category" data-category="${category}">
-                <span>${escapeHtml(template.shortName)}</span>
-                <strong>${escapeHtml(category)}</strong>
+                <strong>${escapeHtml(displaySubjectName(category))}</strong>
                 <small>${escapeHtml(template.intent)}</small>
               </button>
             `,
@@ -534,7 +547,7 @@ function renderWizard() {
         <div class="summary-box">${escapeHtml(humanSummary)}</div>
         <blockquote>${escapeHtml(statement)}</blockquote>
         <div class="suggestion-box">
-          <strong>${escapeHtml(suggestion.subject)}</strong>
+          <strong>${escapeHtml(displaySubjectName(suggestion.subject))}</strong>
           <span>${escapeHtml(suggestion.category)} - ${Math.round(suggestion.confidence * 100)}% confidence</span>
           <small>${escapeHtml(suggestion.reason)}</small>
         </div>
@@ -550,8 +563,8 @@ function renderWizard() {
 function renderImportPanel() {
   return `
     <div class="import-panel">
-      <textarea data-action="set-import-text" rows="5" placeholder="Paste text or CSV content here. TXT/CSV/DOCX file upload controls will feed this review queue in the next parser slice.">${escapeHtml(state.importText)}</textarea>
-      <button class="secondary-button" data-action="parse-import">Parse candidates</button>
+      <textarea data-action="set-import-text" rows="5" placeholder="Text or import requirements here.">${escapeHtml(state.importText)}</textarea>
+      <button class="secondary-button" data-action="parse-import">Review requirements</button>
       <div class="candidate-list">
         ${state.importCandidates.map((candidate) => `<div class="candidate-card"><strong>${escapeHtml(candidate.tempId)} ${escapeHtml(candidate.title)}</strong><span>${escapeHtml(candidate.rawText)}</span></div>`).join("")}
       </div>
@@ -565,13 +578,13 @@ function renderTemplateForm() {
       ${renderField("softwareName", "Software name")}
       ${renderSelect("obligation", "Obligation", ["shall", "should", "must"])}
       ${renderSelect("relationVerb", "Relation verb", ["ensure", "require", "adopt"])}
-      ${renderField("genericSubject", "Generic subject from R2F")}
+      ${renderField("genericSubject", "Generic subject")}
       ${renderField("specificSubjectName", "Specific subject name")}
       ${renderField("specificSubjectStatement", "Specific subject statement", true)}
       ${renderField("specificSubjectModel", "Specific subject model")}
       ${renderSelect("priority", "Priority", REQUIREMENT_PRIORITIES)}
       ${renderSelect("status", "Status", REQUIREMENT_STATUSES)}
-      ${renderSelect("sourceType", "Source type", SOURCE_TYPES)}
+      ${renderSelect("sourceType", "Source type", SOURCE_TYPES, SOURCE_LABELS)}
       ${renderField("notes", "Notes", true)}
     </form>
   `;
@@ -631,7 +644,7 @@ function renderRequirementRow(requirement) {
     <tr>
       <td>${escapeHtml(requirement.requirement_code)}</td>
       <td>${escapeHtml(requirement.title)}</td>
-      <td>${escapeHtml(requirement.final_subject)}</td>
+      <td>${escapeHtml(displaySubjectName(requirement.final_subject))}</td>
       <td>${escapeHtml(requirement.final_category)}</td>
       <td>${escapeHtml(requirement.priority)}</td>
       <td><span class="status-badge">${escapeHtml(requirement.status)}</span></td>
@@ -691,15 +704,15 @@ function renderRequirementEditForm(requirement) {
         ${renderRequirementEditField("specific_subject_name", "Specific subject name", requirement.specific_subject_name)}
         ${renderRequirementEditField("specific_subject_statement", "Specific subject statement", requirement.specific_subject_statement, true)}
         ${renderRequirementEditField("specific_subject_model", "Specific subject model", requirement.specific_subject_model)}
-        ${renderRequirementEditSelect("final_subject", "SMART subject", requirement.final_subject, Object.keys(SOFTWARE_CATEGORY_TEMPLATES))}
+        ${renderRequirementEditSelect("final_subject", "SMART subject", requirement.final_subject, Object.keys(SOFTWARE_CATEGORY_TEMPLATES), SUBJECT_LABELS)}
         ${renderRequirementEditField("final_category", "Final category", requirement.final_category)}
         ${renderRequirementEditSelect("priority", "Priority", requirement.priority, REQUIREMENT_PRIORITIES)}
         ${renderRequirementEditSelect("status", "Status", requirement.status, REQUIREMENT_STATUSES)}
-        ${renderRequirementEditSelect("source_type", "Source type", requirement.source_type, SOURCE_TYPES)}
+        ${renderRequirementEditSelect("source_type", "Source type", requirement.source_type, SOURCE_TYPES, SOURCE_LABELS)}
         ${renderRequirementEditField("notes", "Notes", requirement.notes, true)}
       </form>
       <div class="button-row">
-        <button class="primary-button" data-action="save-requirement-edits" data-id="${requirement.id}" type="button">Save edits</button>
+        <button class="primary-button" data-action="save-requirement-edits" data-id="${requirement.id}" type="button">Ok</button>
         <button class="ghost-button" data-action="cancel-requirement-edit" type="button">Cancel</button>
       </div>
     </aside>
@@ -715,12 +728,12 @@ function renderRequirementEditField(name, label, value, textarea = false) {
   `;
 }
 
-function renderRequirementEditSelect(name, label, value, options) {
+function renderRequirementEditSelect(name, label, value, options, labels = {}) {
   return `
     <label class="field">
       <span>${label}</span>
       <select data-requirement-field="${name}">
-        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}
+        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(labels[option] ?? option)}</option>`).join("")}
       </select>
     </label>
   `;
@@ -730,10 +743,10 @@ function renderFilters() {
   return `
     <div class="filters">
       <label class="field"><span>Keyword</span><input data-filter="keyword" value="${escapeHtml(state.filters.keyword)}" /></label>
-      ${renderFilterSelect("subject", "Subject", ["", ...Object.keys(SOFTWARE_CATEGORY_TEMPLATES)])}
+      ${renderFilterSelect("subject", "Subject", ["", ...Object.keys(SOFTWARE_CATEGORY_TEMPLATES)], SUBJECT_LABELS)}
       ${renderFilterSelect("priority", "Priority", ["", ...REQUIREMENT_PRIORITIES])}
       ${renderFilterSelect("status", "Status", ["", ...REQUIREMENT_STATUSES])}
-      ${renderFilterSelect("sourceType", "Source", ["", ...SOURCE_TYPES])}
+      ${renderFilterSelect("sourceType", "Source", ["", ...SOURCE_TYPES], SOURCE_LABELS)}
       ${renderFilterSelect("validationState", "Validation", ["", "Valid", "Warnings", "Blocked"])}
     </div>
   `;
@@ -752,7 +765,7 @@ function renderTaxonomy() {
       <div class="taxonomy-tree">
         <div class="tree-node root">Endogenous requirements</div>
         <div class="tree-branch active">Software requirements</div>
-        ${bySubject.map((item) => `<div class="tree-leaf"><span>${escapeHtml(item.subject)}</span><strong>${item.count}</strong></div>`).join("")}
+        ${bySubject.map((item) => `<div class="tree-leaf"><span>${escapeHtml(displaySubjectName(item.subject))}</span><strong>${item.count}</strong></div>`).join("")}
         <div class="tree-branch locked">Operation requirements - future</div>
         <div class="tree-branch locked">Development requirements - future</div>
       </div>
@@ -772,10 +785,10 @@ function renderReports() {
         <span class="count-pill">${requirements.length} included</span>
       </div>
       <div class="filters">
-        ${renderReportSelect("reportFormat", "Format", ["XML", "PDF", "DOCX"])}
+        ${renderReportSelect("reportFormat", "Format", ["XML", "DOCX"])}
         ${renderReportSelect("reportScope", "Scope", ["Project", "Filtered"])}
       </div>
-      <button class="primary-button" data-action="export-report">Generate export</button>
+      <button class="primary-button" data-action="export-report">Export</button>
     </section>
   `;
 }
@@ -784,9 +797,9 @@ function renderSettings() {
   return `
     <section class="panel">
       <p class="eyebrow">Admin/Settings</p>
-      <h2>Organization controls</h2>
+      <h2>Company controls</h2>
       <p class="muted">Full member and taxonomy management arrives in the next depth slice. Current role: ${escapeHtml(state.activeRole)}.</p>
-      <div class="signal-row"><span>Organization</span><strong>${escapeHtml(state.selectedOrganization?.name)}</strong></div>
+      <div class="signal-row"><span>Company</span><strong>${escapeHtml(state.selectedOrganization?.name)}</strong></div>
       <div class="signal-row"><span>Project</span><strong>${escapeHtml(state.selectedProject?.name)}</strong></div>
     </section>
   `;
@@ -802,25 +815,25 @@ function renderField(name, label, textarea = false) {
   `;
 }
 
-function renderSelect(name, label, options) {
+function renderSelect(name, label, options, labels = {}) {
   const value = state.templateValues[name] ?? "";
   return `
     <label class="field">
       <span>${label}</span>
       <select data-template-field="${name}">
-        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}
+        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(labels[option] ?? option)}</option>`).join("")}
       </select>
     </label>
   `;
 }
 
-function renderFilterSelect(name, label, options) {
+function renderFilterSelect(name, label, options, labels = {}) {
   const value = state.filters[name] ?? "";
   return `
     <label class="field">
       <span>${label}</span>
       <select data-filter="${name}">
-        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option || "All")}</option>`).join("")}
+        ${options.map((option) => `<option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option ? labels[option] ?? option : "All")}</option>`).join("")}
       </select>
     </label>
   `;
@@ -1018,18 +1031,18 @@ async function handleSignOut() {
 
 async function handleCreateOrganization(formValues) {
   const name = formValues.organizationName;
-  if (!name) throw new Error("Organization name is required.");
+  if (!name) throw new Error("Company name is required.");
   state.selectedOrganization = await createOrganization(name, formValues.organizationDescription);
   state.activeRole = state.selectedOrganization.role ?? "Admin";
   await loadWorkspace();
-  state.notice = `${name} organization created.`;
+  state.notice = `${name} company created.`;
 }
 
 async function handleJoinOrganization(formValues) {
   const inviteCode = normalizeInviteCode(formValues.inviteCode);
   if (inviteCode.length !== 6) throw new Error("Enter a valid 6 digit invite code.");
   state.selectedOrganization = await joinOrganizationByCode(inviteCode);
-  if (!state.selectedOrganization) throw new Error("No organization was joined.");
+  if (!state.selectedOrganization) throw new Error("No company was joined.");
   state.activeRole = state.selectedOrganization.role ?? "Software User";
   state.selectedProject = null;
   await loadWorkspace();
@@ -1044,26 +1057,26 @@ async function handleSelectOrganization(id) {
 }
 
 async function handleUpdateSelectedOrganization(formValues) {
-  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!state.selectedOrganization) throw new Error("Select a company first.");
   if (!canManageOrganization(state.selectedOrganization.role)) {
-    throw new Error("Only organization managers can update organization details.");
+    throw new Error("Only company managers can update company details.");
   }
   const name = formValues.organizationUpdateName;
-  if (!name) throw new Error("Organization name is required.");
+  if (!name) throw new Error("Company name is required.");
   const updated = await updateOrganization(state.selectedOrganization.id, {
     name,
     description: formValues.organizationUpdateDescription,
   });
   state.selectedOrganization = { ...state.selectedOrganization, ...updated };
   await loadWorkspace();
-  state.notice = `${name} organization updated.`;
+  state.notice = `${name} company updated.`;
 }
 
 async function handleDeleteOrganization(id) {
   const organization = state.organizations.find((item) => item.id === id);
   if (!organization) return;
   if (!canManageOrganization(organization.role)) {
-    throw new Error("Only organization managers can delete organizations.");
+    throw new Error("Only company managers can delete companies.");
   }
   await deleteOrganization(organization);
   state.selectedOrganization = null;
@@ -1071,13 +1084,13 @@ async function handleDeleteOrganization(id) {
   state.projects = [];
   state.requirements = [];
   await loadWorkspace();
-  state.notice = `${organization.name} organization deleted.`;
+  state.notice = `${organization.name} company deleted.`;
 }
 
 async function handleRegenerateInviteCode() {
-  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!state.selectedOrganization) throw new Error("Select a company first.");
   if (!canManageOrganization(state.selectedOrganization.role)) {
-    throw new Error("Only organization managers can generate invite codes.");
+    throw new Error("Only company managers can generate invite codes.");
   }
   const inviteCode = await regenerateOrganizationInviteCode(state.selectedOrganization.id);
   state.selectedOrganization = { ...state.selectedOrganization, invite_code: inviteCode };
@@ -1086,9 +1099,9 @@ async function handleRegenerateInviteCode() {
 }
 
 async function handleAddMember(formValues) {
-  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!state.selectedOrganization) throw new Error("Select a company first.");
   if (!canManageUsers(state.selectedOrganization.role)) {
-    throw new Error("Only organization managers can add users.");
+    throw new Error("Only company managers can add users.");
   }
   if (!formValues.memberEmail) throw new Error("Member email is required.");
   await addOrganizationMemberByEmail(
@@ -1101,9 +1114,9 @@ async function handleAddMember(formValues) {
 }
 
 async function handleCreateProject(formValues) {
-  if (!state.selectedOrganization) throw new Error("Select an organization first.");
+  if (!state.selectedOrganization) throw new Error("Select a company first.");
   if (!canCreateProject(state.selectedOrganization.role)) {
-    throw new Error("Only organization managers can create projects.");
+    throw new Error("Only company managers can create projects.");
   }
   const name = formValues.projectName;
   if (!name) throw new Error("Project name is required.");
@@ -1170,7 +1183,6 @@ function handleParseImport() {
   const parsers = {
     Paste: () => parsePastedRequirements(state.importText),
     TXT: () => parseTxtRequirements(state.importText),
-    CSV: () => parseCsvRequirements(state.importText),
     DOCX: () => parseDocxRequirements(),
   };
   const result = (parsers[state.importSource] ?? parsers.Paste)();
@@ -1180,7 +1192,7 @@ function handleParseImport() {
 
 async function handleSaveRequirement() {
   if (!state.selectedOrganization || !state.selectedProject) {
-    throw new Error("Select an organization and project before saving requirements.");
+    throw new Error("Select a company and project before saving requirements.");
   }
 
   const formalStatement = buildTemplateStatement(state.selectedCategory, state.templateValues);
@@ -1302,9 +1314,6 @@ async function handleExportReport() {
   if (state.reportFormat === "XML") {
     downloadTextFile(`${baseName}.xml`, buildRequirementsXml(payload), "application/xml;charset=utf-8");
   }
-  if (state.reportFormat === "PDF") {
-    downloadTextFile(`${baseName}.html`, buildPdfHtml(payload), "text/html;charset=utf-8");
-  }
   if (state.reportFormat === "DOCX") {
     downloadTextFile(`${baseName}.doc`, buildDocxHtml(payload), "application/msword;charset=utf-8");
   }
@@ -1401,6 +1410,14 @@ function getRequirementEditValues() {
     values[field.dataset.requirementField] = field.value.trim();
   });
   return values;
+}
+
+function displaySubjectName(subject) {
+  return SUBJECT_LABELS[subject] ?? subject;
+}
+
+function displaySourceName(source) {
+  return SOURCE_LABELS[source] ?? source;
 }
 
 function slugify(value) {

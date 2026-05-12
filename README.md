@@ -4,16 +4,16 @@ A web application for managing endogenous software requirements using the SMART 
 
 ## Features
 
-- **SMART Wizard** — guided requirement writing with category-specific templates
+- **SMART Requirement Template** — guided requirement writing with category-specific templates
 - **Rule-based classification** — automatic subject/category suggestion with confidence scoring
 - **Requirement validation** — real-time SMART writing guidance and warnings
-- **Workspace model** — accounts → organizations → projects → requirements
+- **Workspace model** — accounts → companies → projects → requirements
 - **Multi-criteria search** — filter by keyword, subject, priority, status, source, and validation state
-- **Export reports** — generate XML, PDF, and DOCX exports
+- **Export reports** — generate XML and DOCX exports
 - **Taxonomy browser** — visual tree for Software requirements (Functional, Data, UI, Technical Interface)
 - **Audit logging** — every create/update/delete is tracked
 - **Role-based access** — Admin, Analyst, Software User, Project Manager
-- **Organization invite codes** — managers can generate six digit codes for controlled access
+- **Company invite codes** — managers can generate six digit codes for controlled access
 
 ---
 
@@ -41,7 +41,7 @@ cd SMART-S2D
 4. Copy the entire contents of `database/supabase_phase1.sql` and paste it into the SQL editor
 5. Click **Run** — this creates all tables, triggers, RLS policies, and seed data
 
-> **Important:** Keep Row Level Security enabled. If a new account can see another account's organizations or projects, rerun `database/supabase_phase1.sql` in the SQL Editor so the latest membership policies are applied.
+> **Important:** Keep Row Level Security enabled. If a new account can see another account's companies or projects, rerun `database/supabase_phase1.sql` in the SQL Editor so the latest membership policies are applied.
 
 ### 3. Disable email confirmation (recommended for testing)
 
@@ -103,11 +103,11 @@ No `npm install` is needed — the server is dependency-free and Supabase is loa
 ## How to Use
 
 1. **Create an account** — click "Create account", enter your name, email, and a password
-2. **Create or join an organization** — create your own workspace or enter a six digit invite code
+2. **Create or join a company** — create your own workspace or enter a six digit invite code
 3. **Manage members** — Admins and Project Managers can add Project Managers, Analysts, and Software Users by email
 4. **Create a project** — Project Managers and Admins can create, update, archive, or delete projects
 5. **Open the project** — click "Open" to enter the project workspace
-6. **Add or edit requirements** — use the SMART Wizard, then edit requirement details from the repository
+6. **Add or edit requirements** — use the SMART Requirement Template, then edit requirement details from the repository
 7. **Browse** — use Dashboard, Requirements, Taxonomy, Search, and Reports from the sidebar
 
 ---
@@ -158,10 +158,10 @@ The prototype covers **Software requirements** only:
 
 | Subject | Description |
 |---------|-------------|
-| Functional requirements | Behavior the software must perform |
+| Function requirements | Behavior the software must perform |
 | Data requirements | Data the software must store, manage, or retrieve |
-| User interface requirements | Screens, controls, navigation, and visual feedback |
-| Technical interface requirements | APIs, integrations, protocols, and external communication |
+| User Interface requirements | Screens, controls, navigation, and visual feedback |
+| Technical Interface requirements | APIs, integrations, protocols, and external communication |
 
 Operation and Development requirements are visible in the taxonomy tree but scoped for future phases.
 
