@@ -508,8 +508,6 @@ function renderDashboard() {
 function renderWizard() {
   const statement = buildTemplateStatement(state.selectedCategory, state.templateValues);
   const humanSummary = buildHumanSummary(state.templateValues);
-  const validation = validateRequirementWriting(statement);
-  const suggestion = suggestSmartCategory(statement);
 
   return `
     <section class="wizard-grid">
@@ -546,14 +544,6 @@ function renderWizard() {
         <h2>Generated statement</h2>
         <div class="summary-box">${escapeHtml(humanSummary)}</div>
         <blockquote>${escapeHtml(statement)}</blockquote>
-        <div class="suggestion-box">
-          <strong>${escapeHtml(displaySubjectName(suggestion.subject))}</strong>
-          <span>${escapeHtml(suggestion.category)} - ${Math.round(suggestion.confidence * 100)}% confidence</span>
-          <small>${escapeHtml(suggestion.reason)}</small>
-        </div>
-        <ul class="validation-list">
-          ${(validation.warnings.length ? validation.warnings : ["Requirement follows the SMART writing guidance."]).map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}
-        </ul>
         <button class="primary-button" data-action="save-requirement">Save requirement</button>
       </aside>
     </section>

@@ -596,7 +596,6 @@ textarea:focus {
 }
 
 .summary-box,
-.suggestion-box,
 .invite-panel,
 .detail-panel,
 blockquote {
@@ -627,24 +626,6 @@ blockquote {
   margin: 12px 0;
   border-left: 4px solid var(--green);
   line-height: 1.65;
-}
-
-.suggestion-box {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.suggestion-box span,
-.suggestion-box small {
-  color: var(--muted);
-}
-
-.validation-list {
-  margin: 0 0 18px;
-  padding-left: 20px;
-  color: var(--muted);
-  line-height: 1.5;
 }
 
 .table-wrap {
