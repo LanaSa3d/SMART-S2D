@@ -788,7 +788,6 @@ function renderSettings() {
     <section class="panel">
       <p class="eyebrow">Admin/Settings</p>
       <h2>Company controls</h2>
-      <p class="muted">Full member and taxonomy management arrives in the next depth slice. Current role: ${escapeHtml(state.activeRole)}.</p>
       <div class="signal-row"><span>Company</span><strong>${escapeHtml(state.selectedOrganization?.name)}</strong></div>
       <div class="signal-row"><span>Project</span><strong>${escapeHtml(state.selectedProject?.name)}</strong></div>
     </section>
