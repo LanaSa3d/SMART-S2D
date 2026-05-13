@@ -71,6 +71,10 @@ const SUBJECT_LABELS = {
   "Technical interface requirements": "Technical Interface requirements",
 };
 
+const STATUS_LABELS = {
+  "Under Review": "Need Review",
+};
+
 const state = {
   initialized: false,
   loading: false,
@@ -583,7 +587,7 @@ function renderTemplateForm() {
       ${renderField("specificSubjectStatement", "Specific subject statement", true)}
       ${renderField("specificSubjectModel", "Specific subject model")}
       ${renderSelect("priority", "Priority", REQUIREMENT_PRIORITIES)}
-      ${renderSelect("status", "Status", REQUIREMENT_STATUSES)}
+      ${renderSelect("status", "Status", REQUIREMENT_STATUSES, STATUS_LABELS)}
       ${renderSelect("sourceType", "Source type", SOURCE_TYPES, SOURCE_LABELS)}
       ${renderField("notes", "Notes", true)}
     </form>
@@ -647,7 +651,7 @@ function renderRequirementRow(requirement) {
       <td>${escapeHtml(displaySubjectName(requirement.final_subject))}</td>
       <td>${escapeHtml(requirement.final_category)}</td>
       <td>${escapeHtml(requirement.priority)}</td>
-      <td><span class="status-badge">${escapeHtml(requirement.status)}</span></td>
+      <td><span class="status-badge">${escapeHtml(displayStatusName(requirement.status))}</span></td>
       <td>${escapeHtml(requirement.validation_state)}</td>
       <td>
         <button class="tiny-button" data-action="select-requirement" data-id="${requirement.id}">View</button>
@@ -678,7 +682,7 @@ function renderSelectedRequirement() {
         ${
           canEdit
             ? `<select data-edit-field="status" data-id="${requirement.id}">
-                ${REQUIREMENT_STATUSES.map((status) => `<option ${requirement.status === status ? "selected" : ""}>${status}</option>`).join("")}
+                ${REQUIREMENT_STATUSES.map((status) => `<option value="${escapeHtml(status)}" ${requirement.status === status ? "selected" : ""}>${escapeHtml(displayStatusName(status))}</option>`).join("")}
               </select>
               <select data-edit-field="priority" data-id="${requirement.id}">
                 ${REQUIREMENT_PRIORITIES.map((priority) => `<option ${requirement.priority === priority ? "selected" : ""}>${priority}</option>`).join("")}
@@ -707,7 +711,7 @@ function renderRequirementEditForm(requirement) {
         ${renderRequirementEditSelect("final_subject", "SMART subject", requirement.final_subject, Object.keys(SOFTWARE_CATEGORY_TEMPLATES), SUBJECT_LABELS)}
         ${renderRequirementEditField("final_category", "Final category", requirement.final_category)}
         ${renderRequirementEditSelect("priority", "Priority", requirement.priority, REQUIREMENT_PRIORITIES)}
-        ${renderRequirementEditSelect("status", "Status", requirement.status, REQUIREMENT_STATUSES)}
+        ${renderRequirementEditSelect("status", "Status", requirement.status, REQUIREMENT_STATUSES, STATUS_LABELS)}
         ${renderRequirementEditSelect("source_type", "Source type", requirement.source_type, SOURCE_TYPES, SOURCE_LABELS)}
         ${renderRequirementEditField("notes", "Notes", requirement.notes, true)}
       </form>
@@ -745,7 +749,7 @@ function renderFilters() {
       <label class="field"><span>Keyword</span><input data-filter="keyword" value="${escapeHtml(state.filters.keyword)}" /></label>
       ${renderFilterSelect("subject", "Subject", ["", ...Object.keys(SOFTWARE_CATEGORY_TEMPLATES)], SUBJECT_LABELS)}
       ${renderFilterSelect("priority", "Priority", ["", ...REQUIREMENT_PRIORITIES])}
-      ${renderFilterSelect("status", "Status", ["", ...REQUIREMENT_STATUSES])}
+      ${renderFilterSelect("status", "Status", ["", ...REQUIREMENT_STATUSES], STATUS_LABELS)}
       ${renderFilterSelect("sourceType", "Source", ["", ...SOURCE_TYPES], SOURCE_LABELS)}
       ${renderFilterSelect("validationState", "Validation", ["", "Valid", "Warnings", "Blocked"])}
     </div>
@@ -1417,6 +1421,10 @@ function displaySubjectName(subject) {
 
 function displaySourceName(source) {
   return SOURCE_LABELS[source] ?? source;
+}
+
+function displayStatusName(status) {
+  return STATUS_LABELS[status] ?? status;
 }
 
 function slugify(value) {

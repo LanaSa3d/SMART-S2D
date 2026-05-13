@@ -3,7 +3,6 @@ export const USER_ROLES = ["Admin", "Analyst", "Software User", "Project Manager
 export const REQUIREMENT_STATUSES = [
   "Draft",
   "Under Review",
-  "Categorized",
   "Approved",
   "Rejected",
 ];
