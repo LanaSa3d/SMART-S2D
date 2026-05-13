@@ -223,8 +223,8 @@ function renderAuth() {
         <div class="brand-lockup">
           <div class="hex-mark">S</div>
           <div>
-            <p class="eyebrow">SMART-S2D</p>
-            <h1>Requirements command workspace</h1>
+            <h1>SMART-S2D</h1>
+            <p class="auth-subtitle">Support System</p>
           </div>
         </div>
         <p class="muted">Sign in or create an account to manage companies, projects, and SMART/R2F requirements.</p>
