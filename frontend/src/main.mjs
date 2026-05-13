@@ -224,7 +224,6 @@ function renderAuth() {
           <div class="hex-mark">S</div>
           <div>
             <h1>SMART-S2D</h1>
-            <p class="auth-subtitle">Support System</p>
           </div>
         </div>
         <p class="muted">Sign in or create an account to manage companies, projects, and SMART/R2F requirements.</p>
