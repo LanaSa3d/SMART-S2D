@@ -16,6 +16,7 @@ describe("app config", () => {
     assert.deepEqual(getAppConfig(), {
       supabaseUrl: "https://example.supabase.co",
       supabaseAnonKey: "anon-key",
+      localMode: false,
     });
     assert.equal(hasSupabaseConfig(), true);
   });
