@@ -4,6 +4,7 @@ export function getAppConfig() {
   return {
     supabaseUrl: config.SUPABASE_URL ?? "",
     supabaseAnonKey: config.SUPABASE_ANON_KEY ?? "",
+    localMode: config.LOCAL_MODE === true,
   };
 }
 
