@@ -1,0 +1,441 @@
+﻿Al-Yamamah University
+College of Engineering and Architecture
+Department of Software Engineering and Architecture
+Kingdom of Saudi Arabia, Riyadh
+2025 â€“ 2026
+Graduation Project Proposal
+SMART-S2D
+SMART: Systemic Approach to Categorizing and Modeling  Requirements
+S2D:  Support Software for categorizing enDogenous requirements
+A Tool toÂ support analysts in categorizingÂ endogenousÂ requirements using the SMART approach.
+Lana Saad                      Maya Besmar                   Lama Elkhawaja
+Supervised by: Prof. Azeddine Chikh
+CHAPTER ONE: INTRODUCTION
+1.1 Background of the Project
+The current categorizations of requirements, which constitute the backbone of requirements engineering, present ambiguity and limited structural coherence. This inadequacy is mainly due to the absence of a reference framework for the definition of software elements and the software environment to which the requirements refer. In fact, given the enormous complexity of modern software programs, it is impossible to properly identify and categorize their requirements without a thorough understanding of the following elements:
+software and its development and operation environments:
+software: composed of functions, data, user interfaces and technical interfaces,
+development environment: consists of the human support (developers), with two types of support, software and hardware, the procedural support for its development (development activities) and the cognitive context of its development (methods, techniques, artifacts and tools),
+operation environment: consists of the human support (end users), with two types of support, software and hardware, the procedural support for its operation (operation activities of the encompassing system) and the cognitive context of its operation (concepts, goals and rules);
+factors that affect software as well as its development and operation environments:
+quality factors such as usability, reliability, safety and portability,
+compliance factors to the various technological, economic and cultural constraints.
+The new systemic approach to categorization and requirements modeling, named SMART (Systemic Approach to caTegorizing and Modeling Requirements), takes into account the previous elements to provide the following:
+at the conceptual level:
+a new R2F (requirements reference framework) framework, which makes it possible to precisely define all aspects related to the software and to its development and operation environments; these latter constitute the subjects of requirements as well as the quality and conformity factors that affect them.
+a new definition of requirements based on R2F,
+a new hybrid requirements categorization, combining several taxonomies and scales, based on R2F;
+Modern software and systems engineering rely heavily on clearly defined requirements to ensure successful development and delivery. The SMART methodology, â€œSystemic Approach to Categorizing and Modeling  Requirementsâ€, provides a structured, rigorous framework to categorize, model and manage requirements throughout the software development lifecycle. This approach offers systematic techniques for categorizing and managing requirements.
+Despite its effectiveness, practitioners frequently encounter challenges in implementing the SMART method uniformly due to the absence of specialized digital support. Conventional tools (e.g., requirements editing tools, requirements management tools, spreadsheets) fail to capture the complete semantic depth of SMARTâ€™s categorizations and modeling constructs. A purpose-built software system that implements the SMART methodology can bridge this gap, helping users, mainly software requirements engineers, apply it in a guided, standardized, and automated fashion.
+This project proposes to develop software that operationalizes the SMART approach, enabling users to categorize endogenous requirements either new or existing ones.
+Endogenous requirements consist of intrinsically describing a generic requirement subject, identified from R2F, by associating it with a specific subject suitable to the future software. The generic subject can be chosen from the R2F subjects, depending on the desired level of refinement, starting from the highest level, comprising three main subjects, to the lowest level, comprising atomic subjects.
+This structural taxonomy of endogenous requirements (by requirement subject) is shown in the figure below.
+1.2 Problem Statement
+While the SMART method provides a comprehensive theoretical framework for requirements engineering, there is currently no dedicated software system that operationalizes its concepts in a structured and guided manner. As a result, practitioners rely on general-purpose tools that do not support the SMART categorization process.
+The proposed system aims to process and manage endogenous requirements as its primary inputs. These inputs may include:
+New requirements entered by users through structured forms.
+Existing requirements imported from external sources, such as text documents or requirement repositories.
+Metadata describing the requirement context, including:
+Requirement textual description (natural language statement),
+Associated subject from the R2F framework,
+Level of refinement (high-level subject or atomic subject),
+These inputs may be provided in structured or semi-structured formats (e.g., form-based entries, text files, or structured requirement records).
+The system will apply the SMART (Systemic Approach to Categorizing and Modeling Requirements) methodology to these inputs by:
+Mapping each requirement to the appropriate R2F subject hierarchy.
+Supporting hybrid categorization from high-level subjects to atomic subjects.
+Ensuring consistent classification rules for endogenous requirements.
+Allowing users to refine, explore, and retrieve requirements through the SMART taxonomy.
+Without such a system, analysts must manually interpret the SMART framework, which often leads to inconsistencies, inefficient categorization, and limited collaboration among team members. Therefore, a dedicated tool is required to systematically support the categorization, management, and exploration of endogenous requirements using the SMART approach.
+1.3 Objectives of the Project
+The main objective of this project is to develop a software system that enables analysts to categorize, manage, and explore endogenous requirements using the SMART methodology in a consistent and guided manner.
+The proposed system will provide the following functional capabilities (specific objectives):
+SMART-Based Requirement Categorization
+Enable users to categorize endogenous requirements according to the SMART hybrid taxonomy and the R2F framework, ensuring consistent classification at different refinement levels.
+Support for Multiple Requirement Sources
+Allow users to:
+Create and categorize new requirements within the system.
+Import and categorize existing requirements from external sources.
+Assign appropriate atomic or hierarchical categories based on SMART rules.
+Structured Requirement Repository
+Maintain a centralized repository that stores categorized requirements together with their associated subjects, attributes, and contextual information.
+Advanced Requirement Retrieval
+Provide multicriteria search and filtering mechanisms that allow users to retrieve requirements based on categories, subjects, or other attributes defined by the SMART model.
+Hierarchical Navigation of Requirements
+Offer an interactive navigation structure based on the SMART taxonomy, enabling users to browse requirements through the subject hierarchy.
+Analytical Visualization and Dashboards
+Provide dashboards that summarize categorized requirements and support analysis of requirement distribution across SMART categories.
+Documentation and Export Features
+Generate structured reports and export requirement data in standardized formats (e.g., XML) to facilitate sharing and documentation.
+AI-Assisted Requirement Categorization
+Provide an optional AI-assisted mechanism that analyzes imported external requirements and suggests appropriate SMART categories and subject classifications for uncategorized requirements, helping analysts improve categorization efficiency and consistency.
+1.4 Significance of the Project
+The project holds importance for both academic and industry contexts:
+For students and researchers: It provides a practical tool to implement theoretical method, deepening understanding of requirement categorization related to endogenous requirements.
+For professionals: It supports effective endogenous requirement analysis, minimizing errors and improving communication among stakeholders.
+For software engineering practice: The tool can serve as a reference platform for future research and extension of requirement engineering methodologies.
+For quality assurance: Systematic categorization improves clarity, traceability, and maintainability of requirements.
+1.5 Scope of the Project
+The project will include:
+Analysis of the SMART approach and mapping to software features
+Architecture and UI/UX (User ExperienceÂ / User Interface (UI)) design of the system
+Core modules:
+Requirement categorization directed by SMART principles
+A relational database component for storing and managing categorized endogenous requirements
+Optional modules
+Querying existing requirements using a multicriteria approach
+Graphical modeling of requirement categories (navigation)
+Generating some reports as semi-structured data using XML technology
+Documentation (user manuals, developer documentation)
+Interactive dashboards
+AI-assisted categorization suggestions for imported external requirements
+The initial implementation will focus on a web-based application accessible via modern browsers.
+The project will not include:
+Full integration with existing requirement management systems (e.g., Jira, DOORS)
+Advanced collaboration features like real-time multi-user editing
+Mobile-specific interfaces
+1.6 Limitations of the Project
+This project has several constraints:
+Time limitations restrict the implementation to core SMART features.
+Scope limitation excludes extensive integrations with third-party tools.
+User evaluation will be performed on a restricted sample of users (e.g., classmates / instructors), not large industry datasets.
+The software will be a prototype, not a complete commercial product.
+Some advanced analytical features (e.g., automated suggestion of optimal categorizations) are beyond the scope.â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹
+1.7 Project Plan
+Table 1:Project Plan
+Figure 1: Graduation Project 1 Gantt Chart.
+1.9 Conclusion
+The SMART methodology provides a structured and systemic framework for categorizing and modeling requirements. However, its practical application remains limited in the absence of dedicated software support capable of operationalizing its hybrid taxonomy and endogenous requirement structure. Existing requirement management tools offer storage and traceability features but do not integrate SMART-specific categorization principles.
+This proposal presents the development of SMART-S2D, a support system designed to implement the SMART approach in a structured and guided manner. By translating theoretical concepts into functional software components, the system aims to enhance consistency, traceability, and usability in endogenous requirement engineering tasks.
+Although the implementation will focus on a prototype-level system within the defined scope, it establishes a foundation for future extensions and potential integration of more advanced analytical features. The project therefore contributes to bridging the gap between the conceptual rigor of SMART and its structured digital application.
+CHAPTER TWO: LITERATURE REVIEW
+2.0 Introduction
+This chapter presents a review of existing approaches and tools related to requirement categorization and management. The aim is to analyze how requirements are currently handled in practice and to identify the limitations of these approaches in supporting structured categorization.
+The chapter begins with an overview of requirements engineering concepts and traditional classification approaches. It then analyzes commonly used tools, including Spreadsheets and requirement management systems such as Jira and IBM DOORS. These tools are evaluated in terms of their ability to support requirement organization, categorization, and traceability.
+Finally, the chapter introduces the SMART methodology as a structured theoretical framework for requirement categorization and highlights the gap between existing tools and the need for systematic support systems.
+2.1 Requirements Engineering Background
+Requirements engineering is widely recognized as a fundamental area in software engineering. The quality of requirements directly affects system reliability, maintainability, and overall project success. According to the Guide to the Software Engineering Body of Knowledge (SWEBOK), requirement specification, validation, and management are essential activities throughout the software development lifecycle.
+Traditional approaches classify requirements into functional and non-functional types which is useful but does not provide enough structure to represent relationships between system components, operational environments, and contextual constraints. As software systems become more complex, this basic classification becomes inadequate for ensuring consistency and clarity in requirement modeling.
+Section One: Existing Categories
+2.1.1 Category 1: Smart Framework
+Smart Framework
+The SMART methodology (Systemic Approach to Categorizing and Modeling Requirements) provides an organized way to classify and manage requirements. It builds on the Requirements Reference Framework (R2F), which offers a broad view of software systems by including not only the system itself but also its development and operational environments.
+In R2F, requirements are linked to clearly defined subjects that represent different parts of the system. These subjects cover software elements such as functions, data, user interfaces, and technical interfaces, as well as aspects of the development environment like processes, tools, human support, and cognitive factors. It also considers the operational environment, including users, procedures, and conditions under which the system is used. This wide perspective helps in analyzing requirements not just based on functionality, but also in relation to the context in which the system is built and used.
+SMART introduces a mixed (hybrid) classification approach that goes beyond simply dividing requirements into functional and non-functional types. Instead, it allows requirements to be categorized across multiple dimensions and levels of detail. Requirements can be broken down step by step, from general concepts to more specific elements, making them clearer and more structured. This process ensures that each requirement is linked to a specific subject within the R2F framework.
+One of the main strengths of SMART is its structured and rule-based classification method. Requirements are categorized based on predefined rules and relationships rather than random labeling. This helps reduce confusion and improves consistency. The hierarchical structure also makes it easier to navigate requirements and understand how different parts of the system are connected.
+In addition, SMART takes into account quality aspects such as usability, reliability, and safety, along with constraints like technical, economic, and cultural factors. This makes it possible to model requirements in a way that reflects both system behavior and real-world conditions.
+However, despite its solid theoretical background, SMART is still mostly conceptual. Its practical use is limited because there are no specialized tools that fully support its classification approach. As a result, analysts often have to apply it manually using general tools, which can lead to inconsistencies and make the process less efficient. To address these limitations, the proposed SMART-S2D system aims to provide a practical implementation of the SMART methodology within a structured and guided software environment.
+2.1.2 Category 2: Traditional Requirement Categorization
+Traditional Requirement Categorization
+Traditional requirement classification usually separates requirements into two main types: Functional and Non-functional. Functional requirements define what a system should do such as handling inputs, producing outputs, or carrying out specific tasks and services. On the other hand, non-functional requirements describe how the system performs these tasks, including qualities like performance, usability, reliability, security, and scalability. This way of classifying requirements is widely used because it is straightforward, easy to understand, and practical in both academic settings and real-world applications.
+However, despite how common this approach is, it has clear limitations in terms of depth and structure. It does not clearly show the relationships between different parts of the system, nor does it explain how external factors like technical constraints or operating environments affect the requirements. In many situations, requirements are written at a high level without being broken down into smaller, more precise components.
+Because of this, the method often depends heavily on the analystâ€™s judgment when identifying and organizing requirements. This reliance can create inconsistencies, ambiguity, and differences in how various stakeholders interpret the same requirements. In addition, the absence of a clear hierarchy or formal structure makes it harder to trace requirements, ensure consistency, and manage them efficiently especially in complex or large scale systems. These challenges point to the need for more organized and systematic methods of requirement classification.
+Comparison Criteria
+To compare traditional requirement classification approaches with the SMART framework, the following evaluation criteria are defined. These criteria reflect the level of structure, consistency, and analytical capability provided by each approach:
+Basic Categorization (Functional / Non-Functional): The ability to classify requirements into functional (describing system behavior) and non-functional (describing quality attributes and constraints).
+Hybrid Taxonomy Structure: The ability to organize requirements using a multi-level classification system that supports hierarchical and cross-dimensional categorization beyond simple binary grouping.
+Atomic Subject Refinement: The ability to decompose requirements into precise atomic elements that represent specific system subjects, enabling detailed and unambiguous classification.
+Environment Integration: The ability to incorporate development and operational environments (e.g., hardware, software platforms, external systems) into requirement categorization.
+Requirement Traceability: The ability to track relationships between requirements and their corresponding system elements, ensuring consistency and facilitating impact analysis.
+Categorization Consistency: The degree to which the categorization process produces uniform and repeatable results, either through user discipline or system-guided rules.
+Structural Formalization: The level of rigor and formal definition in the categorization process, including the use of models, frameworks, and standardized structures.
+Support for Navigation and Retrieval: The ability to browse, explore, and retrieve requirements efficiently through structured navigation mechanisms and search functionalities.
+Table of Comparison
+Table 2: Category Comparison Table
+Section Two: Existing Tools
+2.1.3 Tool 1: Spreadsheets / Basic Tools
+Spreadsheets and basic tools such as Microsoft Excel and Google Sheets are commonly used for documenting and organizing software requirements because of their ease of use and flexibility. These tools allow requirements to be represented in tabular form where each requirement is associated with attributes such as identifier, description, priority, and category. This approach provides a simple and customizable way for analysts to manage requirement data in small-scale projects or early stages of development where formal structure is not required.
+However, from a requirement engineering perspective, spreadsheets show significant structural limitations as they lack an embedded conceptual model or taxonomy that ensures consistent categorization of requirements, and classification is typically performed using manually defined labels or columns which introduces ambiguity and inconsistency especially when multiple users are involved or when the project evolves over time, making it more challenging to maintain uniform categorization standards across the dataset.
+In terms of structure, spreadsheets do not support hierarchical decomposition or semantic relationships between requirements. They are unable to represent dependencies, contextual constraints, or refinement from high-level subjects to atomic elements. Additionally, linking related requirements or tracking changes across multiple entries is often handled manually which reduces traceability and increases errors.  As a result, maintaining traceability and working with large sets of requirements becomes increasingly difficult as the dataset grows.
+Furthermore, spreadsheets do not provide validation mechanisms to ensure the correctness or completeness of requirement categorization. The lack of guided classification forces analysts to rely entirely on manual interpretation which increases the risk of misclassification and reduces consistency across the system. Therefore, while spreadsheets are useful as general tools, they are not suitable for supporting structured and scalable requirement engineering processes. These limitations motivate the use of more advanced requirement management tools such as Jira and IBM DOORS which aim to provide improved organization and traceability.
+2.1.4 Tool 2: Jira / Doors
+Jira Platform
+IBM DOORS
+2.1.4.1 Jira by Atlassian Platform
+Although Jira is a standard choice for tracking project tasks, it reveals major architectural shortcomings when evaluated for formal systems engineering. We can break down the fundamental differences between Jiraâ€™s workflow and the proposed SMART-S2D framework into three primary areas:
+1. Structural Logic and Taxonomy
+In terms of Functional Distinction, Jira provides a basic manual labeling system for issues, but it lacks any internal logic to properly validate or separate Functional Requirements (the "what") from Non-Functional Requirements (the "how"). While a user can choose between a "Story" and a "Task," the tool itself does not recognize the technical dependencies between these categories.
+Figure 2: Jira Issue Type Selection providing basic Functional Distinction
+Furthermore, Jiraâ€™s organizational effectiveness is limited by a project-management hierarchy that prioritizes delivery schedules over technical architecture. Unlike the SMART-S2D system's Hybrid Taxonomyâ€”which organizes requirements through semantic roles like Subject, Action, and Conditionâ€”Jiraâ€™s classification is purely for administrative tracking. Its Hierarchical Navigation Tree is also Limited; it relies on a shallow "Epic-to-Story" structure as shown in the Timeline view, which cannot handle the deep decomposition needed for complex engineering systems.      Figure 3: Shallow Hierarchical Structure in Jira Timeline View
+Ultimately, Jira is built for monitoring progress, whereas SMART-S2D is designed to support a full architectural breakdown from broad system goals down to specific atomic components.
+2. Guided Elicitation and Quality Oversight
+A major technical shortcoming in Jira is the lack of automated governance during the initial requirement entry phase. Since Jira relies on standard, open-ended text fields, it is rated Wrong for both Atomic Refinement and Guided Categorization. The tool offers no built-in linguistic checks or "SMART Wizard" to stop users from entering vague or compound requirements.
+Figure 4: Jira's Unguided Manual Entry Interface
+As the interface shows, the platform depends entirely on the userâ€™s own input without checking if the requirement follows SMART standards or R2F structural rules. By contrast, SMART-S2D uses an integrated elicitation workflow that automatically enforces atomicity and validates every requirement against the SMART framework before it is saved.
+3. Data Retrieval and Systemic Interoperability
+When it comes to accessing data, both platforms offer Correct versions of Multicriteria Retrieval, though they serve different purposes. Jiraâ€™s search tools are built for administrative tracking, focusing on things like assignees and current task status.
+Figure 5: Jiraâ€™s Administrative Search and Filter Sidebar
+While this works well for managing a team's workflow, it doesn't allow engineers to retrieve requirements based on their specific roles, such as searching by "Action" or "Subject." Additionally, Jiraâ€™s XML Export is considered Limited. Even though the software can produce XML files, the output is "flat" data that lacks the semantic mapping needed for technical modeling.
+Figure 6: Generic XML Export Option in Jira
+In comparison, SMART-S2D generates "Model-Ready" XML files that are specifically formatted to plug into R2F tools, allowing for the automatic creation of system diagrams.
+2.1.4.2 IBM Engineering Requirements Management DOORS
+IBM DOORS is a high-level industrial platform specialized in maintaining complex traceability across large-scale projects. While it provides more depth than basic project management software like Jira, it remains a general-purpose environment that lacks the specialized systemic intelligence inherent in the SMART-S2D system. The following analysis contrasts IBM DOORS with the SMART-S2D framework through three integrated perspectives:
+1. Structural Framework and Taxonomy
+In IBM DOORS, the classification of requirements relies heavily on manual entry through custom attributes or partitioned modules. Since the tool lacks an embedded reference framework like R2F, it cannot autonomously differentiate between a core software function and an environmental constraint. This forces users to define these parameters manually, which frequently results in inconsistent or subjective taxonomies.
+By contrast, SMART-S2D is built upon a native hybrid taxonomy. It applies a rigorous structural logic that automatically organizes requirements based on their specific relationship to the software and its surrounding environment, ensuring a clear and standardized distinction between functional and non-functional requirements from the start.
+2. Controlled Elicitation and Requirement Atomicity
+IBM DOORS essentially functions as an open "blank canvas." It offers no built-in linguistic validation or "SMART Wizard" to intercept the entry of ambiguous, multi-part, or poorly formatted requirements. Consequently, the precision of decompositionâ€”ensuring a requirement reaches its "atomic" levelâ€”is dependent entirely on the individual analyst's skill level and manual oversight.
+SMART-S2D, however, employs a guided elicitation workflow. It functions as a methodological supervisor, funneling each requirement through a mandatory refinement process. This system ensures that every entry is broken down into its most basic atomic subject and verified against SMART criteria before it is accepted into the database.
+3. Hierarchical Navigation and Technical Interoperability
+Navigation within DOORS follows a traditional folder-and-file structure (Database Explorer), and its retrieval features are primarily administrative, focusing on project tracking and ownership. While it supports XML exporting, the resulting files are "flat," containing raw text without the semantic metadata required for technical modeling.
+SMART-S2D improves on this by offering a navigation tree strictly aligned with the SMART subject hierarchy (distinguishing between Software and the Operation Environment). It facilitates "Model-Ready" retrieval, allowing users to filter requirements by technical roles such as "Action" or "Condition." Furthermore, its XML output is specifically engineered for R2F interoperability, enabling the automated generation of system architecture diagramsâ€”a capability not supported by DOORS.
+Comparison Criteria
+To evaluate existing tools and approaches, several key features related to requirement categorization and management are considered. These features reflect the ability of each tool to support structured and systematic handling of requirements:
+Functional and Non-Functional Classification: Ability to distinguish between different types of requirements.
+Hybrid Taxonomy Structure: Support for multi-level categorization beyond simple classification.
+Atomic Subject Refinement: Ability to refine requirements into detailed atomic elements.
+Guided Categorization: Support for enforcing structured categorization rules.
+Hierarchical Navigation: Ability to browse and explore requirements through structured relationships.
+Multicriteria Retrieval: Support for searching and filtering requirements using multiple attributes.
+Structured Export (e.g., XML): Ability to generate structured and shareable requirement documentation.
+Table of Comparison
+Table 3: Tools Comparison Table
+2.2 Comparative Analysis of Existing Approaches
+The comparison highlights the differences between traditional requirement classification, informal tools, structured management systems, and theoretical frameworks for requirement categorization. The traditional functional and non-functional classification provides a simple and widely used way to separate what the system should do from the quality constraints it should satisfy. However, this classification is often too broad and does not provide enough detail to support deeper requirement organization, refinement, or navigation.
+Spreadsheets provide a flexible way to document requirements but lack structured categorization, hierarchical organization, and consistency. Tools such as Jira and IBM DOORS improve requirement management through traceability and workflow control, but they rely mainly on user-defined labels and do not enforce a formal categorization model.
+In contrast, the SMART framework introduces a more structured and systematic approach based on a hybrid taxonomy and the R2F model. Compared with the traditional functional/non-functional classification, SMART provides more detailed requirement subjects and supports hierarchical categorization, making it easier to classify, refine, and manage requirements consistently. However, its practical use is limited due to the lack of dedicated software support.
+This gap between theoretical capability and practical implementation motivates the development of a support system such as SMART-S2D.
+2.3 Research Gap
+Requirement categorization using the SMART methodology is well-supported in theory. The methodology defines clear hierarchical structures and relies on the R2F framework to guide how requirements are classified from within the system itself. These features make it a strong candidate for managing complex requirement sets in a structured and repeatable way.
+However, when it comes to actual tool support, the situation is different. No existing requirement management system has been built to reflect how SMART organizes requirements. The hierarchical structures specific to the methodology are not implemented in any current tool, and the logic behind R2F-based endogenous categorization is not enforced anywhere in practice. Because of this, analysts who work with SMART must apply its concepts through manual interpretation, making judgment calls that are not guided or verified by any system.
+This creates real problems. When categorization depends on individual interpretation, different analysts will inevitably apply the methodology differently, especially in cases that are not straightforward. Over time, and across larger projects, these differences add up. The consistency that the methodology is supposed to provide starts to break down, and the process becomes harder to manage and scale.
+This gap between the theoretical strength of SMART and the lack of tool support for it is the core motivation behind SMART-S2D. The system is not meant to change the methodology itself but to implement it in a way that removes the reliance on manual effort and makes consistent application possible across different users and project contexts.
+2.4 Conclusion
+In conclusion, this chapter reviewed the main concepts, methods, and tools related to requirement categorization and management. The literature shows that while traditional classifications such as functional and non-functional requirements are widely used, they are often too broad to support detailed categorization and refinement. Existing tools such as spreadsheets, Jira, and IBM DOORS provide useful support for documentation, tracking, and traceability, but they do not enforce a formal requirement categorization methodology.
+The SMART methodology, supported by the R2F framework, provides a more structured approach through hierarchical and taxonomy-based categorization. However, the lack of dedicated tool support limits its practical application. Therefore, this research identifies a clear gap between the theoretical strength of SMART and its implementation in real software tools. This gap motivates the development of SMART-S2D as a support system for structured requirement writing, categorization, retrieval, and management
+CHAPTER THREE: METHODOLOGY
+3.0 Introduction
+In this chapter, we implement the SMART methodology to create a systematic foundation for our SMART-S2D tool. At the heart of this method is the R2F (Referential Requirement Framework), enabling us to break down the software system into its essential elements and categorize requirements according to their source and impact. The Software Subject serves as the foundational element of the R2F framework, definingÂ the internal parameters and limits of the product by separating system-specific needs from those shaped by external operational or developmentalÂ environments.
+The Decomposition of Software Subjects
+We classify requirements based on four main topics taken from the R2F framework:
+FunctionThis dimension defines the "behavior" of the software. It encompasses the services, logic, and operations the system must perform to satisfy its goals.â€¢ Purpose:Â To define what the system does for the user or other systems.
+DataThis dimension defines the "knowledge" or "state" of the software. It encompasses all entities, attributes, and relationships that the system must store, retrieve, or manage.â€¢ Purpose:Â To define the structure and integrity of the information required for the software to function.user."
+User Interface (UI)This dimension defines the "interaction" with the software. It encompasses the layout, navigation, and visual elements that allow users to interface with the systemâ€™s internal mechanisms.â€¢ Purpose:Â To bridge the gap between the internal logic (Function/Data) and the human operator.
+Technical InterfaceThis dimension defines the "connectivity" of the software. It encompasses the protocols, APIs, and exchange mechanisms that allow the software to communicate with external systems, databases, or third-party hardware.â€¢ Purpose:Â To define the system's external boundaries and interoperability.
+To efficiently handle these topics, we utilize a hybrid classification model that differentiates needs based on their type and source. The SMART-S2D tool ensures that for each software component (Function, Data, UI, Technical Interface), the analyst is encouraged to think about its Endogenous definition, the fundamental system behavior and its Exogenous constraints, the external and quality requirements. This parallel structure removes subjectivity in requirement engineering, since the tool enforces a consistent R2F hierarchy irrespective of the requirement's source. Through this consistency, we guarantee that each requirement is completely defined, transitioning from general user needs to specific, verifiable statements.
+3.1 Software Subject Endogenous Requirements (Functional)
+3.1.1 Function
+This element contains the fundamental operational services and logic that the system carries out. By isolating "Function" as the main driver of system behavior, we ensure operational logic is separate from data management, user interface, or technical integration, allowing for an accurate architectural representation of system abilities.
+Requirements Statement Table:
+The SMART-S2D tool accomplishes this by offering a specific input module for "Function." When an analyst chooses this topic, the tool requires the application of the "The software shall..." statement structure, connecting the statementÂ directly to the Endogenous category in the project database to maintain consistency.
+3.1.2 Data
+This component encompasses the informational entities, attributes, and relationships that the system must store, retrieve, or manage. By isolating "Data" as a specific subject, we ensure that the softwareâ€™s informational requirements, the "knowledge" or "state" of the systemâ€”are explicitly defined, preventing data structure requirements from being improperly categorized as mere functional tasks.
+Requirements Statement Table:
+The SMART-S2D tool ensures this by offering a specific input module for "Data." When an analyst chooses this topic, the tool mandatesÂ the application of the "The software shall..." command structure and calls for the specification of entity attributes, guaranteeing that all data-related requirements are systematically persistedÂ in the project database.
+3.1.3 User Interface
+This part outlines the visual layouts, navigation flows, and interactive elements that let users interact with the system. By separating the "User Interface," we make sure that the requirements for usability and accessibility are well stated, closing the gap between the human operator and the core system logic.
+Requirements Statement Table:
+The SMART-S2D tool enforces this by providing a dedicated input module for "User Interface." When an analyst selects this subject, the tool mandates the use of the "The software shall..." instruction formula and requires the definition of UI-specific attributes, ensuring that all interaction requirements are systematically recorded.
+3.1.4 Technical Interface
+The connectivity, protocols, and integration techniques that enable the software to interact with other systems are specified in this component.Â By separating the "Technical Interface," we guarantee that the external border and interoperability criteria of the software are clearly specified, protecting the integrity of communications between systems.
+Requirements Statement Table:
+The SMART-S2D tool enforces this by providing a dedicated input module for "Technical Interface." When an analyst selects this subject, the tool mandates the use of the "The software shall..." instruction formula, linking the statement directly to the Endogenous category in the project database to maintain methodological integrity.
+3.2 Software Subject Exogenous Requirements (Nonfunctional)
+3.2.1 Function
+The operational logic of the system is subject to performance and quality constraints that are specified in this component. Guarantees that functional services fulfill the necessary requirements for dependability and efficiency.
+Requirements Statement Table:
+The SMART-S2D tool requires the analyst to link functional requirements to a "Quality Attribute" (e.g., Performance, Reliability) to ensure all logic is constrained by defined, measurable metrics rather than vague expectations.
+3.2.2 Data
+This component defines the security, privacy, and integrity constraints applied to the system's stored informational entities. Guarantees that data assets are protected from unauthorized access, maintain long-term integrity, and meet industry compliance standards.
+Requirements Statement Table:
+The SMART-S2D tool enforces the selection of a "Compliance Factor" when categorizing data, ensuring no data requirement is left without a corresponding security constraint or integrity metric.
+3.2.3 User Interface
+This component defines the usability, accessibility, and ergonomic constraints applied to the system's interactive elements. Ensures the system is intuitive and accessible to a diverse user base, adhering to international standards regardless of the user's technical background.
+Requirements Statement Table:
+The SMART-S2D tool mandates that all UI requirements are associated with an "Accessibility Constraint" or "Usability Metric," preventing the design of interface flows that fail to meet standardized user experience benchmarks.
+3.2.4 Technical Interface
+This component defines the regulatory, communication, and protocol constraints for external system interoperability. Protects the integrity of external connections and ensures the system adheres to established networking and security protocols.
+Requirements Statement Table:
+The SMART-S2D tool requires the selection of an "Integration Standard" for all technical interfaces, ensuring that all connections are documented against external regulatory protocols and communication constraints.
+3.3 USE CASE DIAGRAM
+3.3.1 Actors
+Admin
+Analyst
+Software User
+Project Manager
+3.3.2 Use Cases
+3.3.2.1 Admin
+UC-00: Login
+UC-01: Edit Generic Subject (Includes: Create, Update, Delete Subject)
+UC-02: Manage Users (Includes: Add, Modify, Delete User)
+UC-03: View R2F
+UC-04: View Logs
+UC-05: View List of Users
+UC-06: View List of Subjects
+UC-07: View List of Categories
+UC-08: View Analyst Requirements
+UC-09: View User Requirements
+3.3.2.2 Analyst
+UC-00: Login
+UC-10: Edit Analyst Requirements (Includes: Create, Update, Delete Analyst Requirement)
+UC-06: View List of Subjects
+UC-07: View List of Categories
+UC-08: View Analyst Requirements
+UC-09: View User Requirements
+3.3.2.3 Software User
+UC-00: Login
+UC-11: Edit User Requirement (Includes: Create, Update, Delete User Requirements)
+UC-09: View User Requirements
+3.3.2.4 Project Manager
+UC-00: Login
+UC-12: Edit Project (Includes: Create, Update, Delete Project)
+UC-13: View Dashboard
+UC-14: View Project Reports
+UC-08: View Analyst Requirements
+UC-09: View User Requirements
+This Use Case Diagram outlines the functional architecture of the SMART-S2D System, defining specific responsibilities for the Admin, Software User, Analyst, and Project Manager. While all roles inherit the base Login capability, the system maintains a strict separation of duties: the Admin controls system configurations and user management; the Software User and Analyst drive the requirement lifecycle through specialized creation and editing tools; and the Project Manager provides oversight via project tracking and reporting dashboards. By utilizing Â«includeÂ» relationships to standardize "Edit" and "View" functions, the diagram illustrates a modular, secure environment designed for high-precision requirement traceability.
+Figure 7: SMART Use Case Diagram
+3.4 USE CASE DESCRIPTION
+3.5 CLASS DIAGRAM
+The class diagram illustrates the structure of the SMART-S2D Requirement Management System and the relationships between its main classes. The Requirement class represents the core component and is categorized into Endogenous Requirement and Exogenous Requirement. Endogenous requirements are further specialized into development, software, and operation requirements, while software requirements are divided into function, data, user interface, and technical interface requirements. The diagram also models the SMART taxonomy using generic and specific subjects and factors. In addition, supporting classes such as project, software, system, and company are included to represent the organizational environment of the system.
+Figure 8: Class Diagram
+3.6 SEQUENCE DIAGRAMS
+3.6.1 Requirement Categorization
+Requirement Categorization Sequence Diagram shows how a requirement entered by an analyst is processed and categorized step by step:
+The Analyst opens the categorization page in the Web UI and enters requirement details.
+The Web UI sends these details to the Categorization Controller.
+The controller asks the SMART Engine to suggest atomic (basic) categories using subjects and taxonomy from the Database.
+Suggested categories are sent back to the Web UI, which displays them to the analyst.
+The analyst selects one category.
+The controller then saves the requirement and its chosen category into the Database.
+The success confirmation is returned, and the analyst sees the categorized requirement listed in the system.
+Figure 9: Requirement Categorization Sequence Diagram
+3.6.2 Requirement Retrieval (Multicriteria Search)
+This sequence diagram shows how a user (Analyst) searches and views requirements in a system:
+The Analyst opens the search page on the Web UI and is shown a search form.
+They enter search criteria (like subject, type, priority) and submit it.
+The Web UI sends the request to the Search Controller, which queries the Database.
+The Database returns matching requirements, which are sent back to the Web UI and displayed to the Analyst.
+Optional flow (View Details):
+The Analyst selects a specific requirement from the results.
+The Web UI requests detailed information from the Search Controller.
+The controller fetches the details from the Database and returns them.
+The Web UI displays the full requirement details to the Analyst.
+In short: it shows the step-by-step interaction between user, UI, backend, and database for searching and viewing requirements.
+Figure 10: Requirement Retrieval Sequence Diagram
+3.6.3 Navigation in Hybrid Taxonomy
+This diagram shows how a user browses a category tree to find requirements:
+The Analyst opens the taxonomy and sees a tree.
+Selecting a node loads its child nodes from the database.
+Selecting a sub-node fetches related requirements.
+The system displays the requirements list.
+In short:Â the user navigates step-by-step through categories to view related requirements.
+,
+Figure 11: Hybrid Taxonomy Navigation Sequence Diagram
+3.6.4 Reporting (Export XML Report)
+The Analyst opens the reports page and chooses report type & filters.
+The Web UI sends a request to generate the report.
+The Report Controller gets data from the Database.
+The XML Generator creates an XML file.
+The file is returned and downloaded by the Analyst.
+In short:Â user selects options â†’ system generates XML report â†’ user downloads it.
+Figure 12: Reporting Sequence Diagram
+3.6.5 User Authentication (Login)
+User Authentication (Login): User opens login page, enters credentials which are submitted and validated. If valid, user is redirected to the dashboard; if invalid, an error is shown A user opens the login page, enters credentials, and submits them. The Authentication Controller validates with the Database, then returns a result:
+â€¢Valid â†’ login success + redirect to dashboard
+â€¢Invalid â†’ error message shown
+Figure 13: User Authentication Sequence Diagram
+3.6.6 Requirement Update (Editing)
+Requirement Update (Editing): Analyst selects a requirement, requests its data, modifies it, and submits updates. The system updates the requirement and shows a confirmation An Analyst selects a requirement to edit. The system fetches its data from the Database and displays it. The analyst modifies and submits â€” the Requirement Controller updates the DB, then:
+â€¢Selected (success) â†’ confirmation shown
+â€¢Not Selected (fail) â†’ error message
+Figure 14: Requirement Update Sequence Diagram
+3.6.7 User Management (Admin)
+User Management (Admin): Admin can add, edit, or delete users by sending data to the controller, which updates the database and confirms success, then shows the result. The Admin has three operations, each following the same pattern â€” select user â†’ send data â†’ DB action â†’ confirmation or error:
+â€¢Add User â†’ inserts new user record
+â€¢Edit User â†’ updates existing user data
+â€¢Delete User â†’ removes user by ID
+Each has a â€œNot Selectedâ€ failure path that shows an error.
+Figure 15: User Management Sequence Diagram
+3.6.8 Project Management (Project Manager)
+Project Management (Project Manager): Project Manager can create, update, or delete projects by sending project data/ID to the controller, which updates the database and confirms success, then shows the result Mirror of diagram 7 but for projects. The Project Manager performs three DB operations via the Project Controller:
+â€¢Create Project â†’ saves new project
+â€¢Update Project â†’ modifies project data
+â€¢Delete Project â†’ removes project by ID
+Same success/failure branching applies throughout.â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹
+Figure 16: Project Management Sequence Diagram
+3.6.9 Login
+Shows how the user logs into the system. The username and password are checked in the database, then the system either allows access or shows an error message The user enters their username and password â†’ the Web UI sends the credentials to the AuthController â†’ it checks them against the Database â†’ the DB returns Valid or Invalid.
+â€¢Valid â†’ Controller confirms login success â†’ UI shows the dashboard
+â€¢Invalid â†’ Controller returns login failed â†’ UI shows an error message
+This is the entry gate to the entire system. No role gets in without passing this check.
+Figure 17: Login Sequence Diagram
+3.6.10 Create & Categorize Requirement
+Explains how a user creates a new requirement. The SMART engine analyzes the requirement and suggests a category before saving it in the database This one is unique because it involves 4 components instead of 3 â€” thereâ€™s an extra SMART Engine for categorization.
+The user creates a new requirement â†’ submits it via the UI â†’ the ReqController passes it to the SMART Engine, which analyzes the requirement and suggests the most suitable category â†’ the suggested category is returned to the Controller â†’ the requirement is then saved to the Database together with its category â†’ the DB confirms â†’ the Controller sends a success response â†’ the UI shows a confirmation to the user.
+The key point here is that the system automatically categorizes the requirement using AI/logic â€” the user doesnâ€™t have to manually pick a category.
+Figure 18: Create & Categories Requirement Sequence Diagram
+3.6.11 Edit/Update Requirement
+Describes how a user edits an existing requirement. The system retrieves the requirement data, updates it, and saves the changes successfully The user enters their username and password â†’ the Web UI sends the credentials to the AuthController â†’ it checks them against the Database â†’ the DB returns Valid or Invalid.
+â€¢Valid â†’ Controller confirms login success â†’ UI shows the dashboard
+â€¢Invalid â†’ Controller returns login failed â†’ UI shows an error message
+This is the entry gate to the entire system. No role gets in without passing this check.
+Figure 19: Edit/Update Requirement Sequence Diagram
+3.6.12 Generate/View Reports
+Shows the process of generating reports. The user selects filters, the system collects data from the database, formats the report, and displays or downloads it Any user (Analyst, Software User, or Project Manager) can trigger this.
+They select filters to request a report â†’ the Web UI tells the Report Controller â†’ it fetches categorized requirements from the Database â†’ formats the output as XML/Structured â†’ sends it back â†’ the user can display or download the final report.
+N
+Figure 20: Generate/View Reports Sequence Diagram
+3.6.13 Manage Users Sequence Diagram (Admin)
+Illustrates how the admin manages users by adding, editing, or deleting user accounts through the system and database The Admin has full CRUD control over users, all following the same flow: action â†’ send data â†’ DB operation â†’ confirmation â†’ show result:
+â€¢Add User â†’ inserts a new user record
+â€¢Select User â†’ retrieves an existing userâ€™s data
+â€¢Edit User â†’ updates user information
+â€¢Delete User â†’ removes user by IDUnlike diagram 7 from before, this version         only shows the success path â€” no error/Not Selected branches.
+Figure21: Manage Users Sequence Diagram (Admin)
+3.6.14 Manage Project (Project Manager)
+Explains how the project manager creates, edits, or deletes projects, and how the system stores these changes in the database Identical pattern to the User Management above, but the Project Manager operates on projects through the Project Controller Identical pattern to the User Management above, but the Project Manager operates on projects through the Project Controller:
+â€¢Create Project â†’ saves new project
+â€¢Select Project â†’ retrieves project data
+â€¢Edit Project â†’ updates project details
+â€¢Delete Project â†’ removes project by ID
+Again, only the success path is shown here â€” cleaner and more streamlined than the earlier version which included failure branches.â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹
+Figure 22: Manage Project Sequence Diagram (Project Manager)
+3.7 DATABASE DIAGRAMS
+3.7.1 Entity Relationship
+This Entity Relationship Model (ERM) provides a conceptual overview of the systemâ€™s data architecture, focusing on the logical flow from high-level categorization to technical execution. The model is centered around the Software entity, which acts as the primary technical foundation. Generic Subjects are decomposed into Specific Subjects, which in turn serve as the parent categories for individual Requirements; these requirements then link directly to the Software they define. Internally, the software contains various Systems, while externally, it is implemented by one or more Projects. Finally, the Company entity provides organizational oversight by managing these projects. This structure ensures that every requirement is traceable through its specific subject matter to the exact software components and corporate projects responsible for its delivery.
+Figure 23: Entity Relationship Diagram
+3.7.2 Relational Tables
+This relational table model illustrates a structured data flow that connects high-level subjects to technical software implementation and corporate management. Generic Subjects act as parent categories for Specific Subjects, which in turn define the context for individual Requirements through a direct foreign key relationship. These requirements, along with technical Systems, are consolidated under the Software entity, serving as the central technical foundation. Finally, the Project entity integrates the organizational layer by linking a specific piece of software to its managing Company, ensuring that every requirement is traceable from its conceptual origin to its final software delivery and project ownership.
+Figure 24: Relational Tables Diagram
+3.7.3 Database Scheme
+This database schema establishes a structured hierarchy for managing software development by linking high-level categorization to corporate project execution. Specific Subjects are organized under Generic Subjects to provide thematic context for Requirements, which store detailed metadata such as priority and status. These requirements are tied directly to the Software entity, which also serves as a parent to various Systems. Finally, the Project entity integrates the technical and organizational layers by connecting the software to its managing Company, ensuring full traceability from broad subject matter down to specific technical implementations and corporate ownership.
+Figure 25: Database Schema Diagram
+3.8 SYSTEM ARCHITECTURE DIAGRAM
+Layer 1: User Layer
+The system has four roles Analyst, Project Manager, Admin, and Software User each with different permissions and access levels.
+Layer 2: Presentation Layer
+The front end interface split into three parts: the Analyst interface for inputting and managing requirements, the admin interface for managing users/projects and monitoring the system, and shared components like login, notifications, and dashboard that all roles use.
+Layer 3: Application Layer
+The brain of the system where all logic happens, containing six modules: Authentication & Authorization controls access using RBAC, the SMART Categorization Engine automatically classifies requirements using the R2F framework, Requirement Management handles full CRUD and versioning, the Search Engine allows filtering and navigation, the Reporting Module generates XML reports and analytics, and Project & User Management handles assignments and permissions.
+Layer 4: Data Layer
+The central Database stores everything user info, projects, requirements, SMART categories, logs, reports, and audit records acting as the single source of truth for the whole system.
+Layer 5: Integration Layer
+Connects the system to the outside world through XML export, authentication services, and future API integrations, while the SMART Knowledge Base provides the taxonomy rules and R2F framework structure that power the categorization engine.
+Layer 6: Infrastructure & Security Layer
+The foundation that keeps everything running web server, cloud hosting, database server, and backup on the infrastructure side, protected by HTTPS encryption, JWT authentication, input validation, access control, and activity logging on the security side.â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹â€‹
+Figure 26: SMART-S2D Architecture Diagram
+3.9 UI PROTOTYPE
+The UI Prototype section presents the visual design and interaction flow of the SMART-S2D system. The purpose of this prototype is to demonstrate how users can manage software requirements using the SMART methodology and the R2F-based requirement categorization approach. The prototype was designed as a high-fidelity web application to show the main screens, navigation structure, requirement-writing workflow, taxonomy selection process, and requirement repository features.
+The SMART-S2D prototype focuses on the software requirements branch of endogenous requirements. Since the current project scope is limited to software requirements, the active taxonomy includes four main categories: Function requirements, Data requirements, User Interface requirements, and Technical Interface requirements. Operation requirements and Development requirements are displayed as future taxonomy branches but are disabled in the current prototype. This helps communicate that the system is designed to be expandable while keeping the implemented prototype focused and realistic.
+The prototype begins with a workspace page where users can create, join, or open a company and manage related projects. This structure reflects how requirements are usually organized in real software engineering environments, where work belongs to a company or team and each project contains its own requirement repository. Users can create projects, open existing projects, update project information, and manage requirements within the selected project.
+After opening a project, users can access the project dashboard, which summarizes requirement information such as total requirements, draft requirements, requirements needing review, approved requirements, and rejected requirements. This dashboard gives project managers, analysts, and other users a quick overview of the requirement status and supports requirement monitoring during the development process.
+One of the main interfaces in the prototype is the SMART Requirement Template page. This page guides users through writing requirements using a structured template rather than relying only on free text. The template follows the SMART/R2F writing style by separating the Generic Subject, Specific Subject, Specific Subject statement, and Specific Subject model. This helps users produce clearer and more consistent software requirement statements. The system also provides rule-based validation and category suggestions to support requirement classification without using AI.
+The prototype also includes a taxonomy page that visually presents the software requirement taxonomy and allows users to understand how requirements are categorized under the SMART structure. In addition, the requirements repository and search pages allow users to view saved requirements, filter them, open requirement details, and edit requirement information such as title, category, priority, status, and requirement statement. This supports requirement retrieval and refinement, which are important parts of structured requirement management.
+The reports page allows users to export project requirements in supported formats such as XML and DOCX. These exports are intended to support academic demonstrations, requirement reviews, and documentation sharing. The Admin/Settings area provides administrative access for managing system-related functions in future development phases.
+Overall, the SMART-S2D UI prototype demonstrates a specialized requirement management system rather than a general task management tool. Its interface is designed around SMART-based requirement writing, software requirement taxonomy navigation, structured categorization, project-based organization, and requirement retrieval. By presenting the complete set of prototype screens, the design illustrates how SMART-S2D can help users create, classify, manage, and review software requirements in a more systematic and academically grounded way.
+Figure 27: Sign-In Interface
+Figure 28: Account Creation Interface
+Figure 29: Workspace, Company, and Project Management Interface
+Figure 30: Project Dashboard and Requirement Distribution Interface
+Figure 31: Requirement Template and Generated Statement Interface
+Figure 32: Requirements Repository and Requirement Details Interface
+Figure 33: Requirement Editing Interface
+Figure 34: Hybrid Taxonomy Navigation Interface
+Figure 35: Requirement Search and Multicriteria Retrieval Interface
+Figure 36: Requirement Export and Reporting Interface
+Figure 37: Admin Settings and Company Controls Interface
+3.10 Conclusion
+4.0 References
+Chikh, A. (2025). Systemic Approach to Categorizing and Modeling Requirements. Wiley-ISTE.https://www.wiley.com/en-us/Systemic+Approach+to+Categorizing+and+Modeling+Requirements-p-00455250
+Bourque, P., & Fairley, R. E. (2014). Guide to the Software Engineering Body of Knowledge (SWEBOK V3.0). IEEE Computer Society.https://www.computer.org/education/bodies-of-knowledge/software-engineering
+Hull, E., Jackson, K., & Dick, J. (2011). Requirements Engineering (3rd Edition). Springer London.https://www.springer.com/gp/book/9781849964043

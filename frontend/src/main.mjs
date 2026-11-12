@@ -120,14 +120,23 @@ async function init() {
     return;
   }
 
-  await runWithUi(async () => {
+  state.loading = true;
+  state.error = "";
+  render();
+
+  try {
     state.session = await getSession();
     if (state.session?.user) {
       state.profile = await ensureProfile(state.session.user);
       await loadWorkspace();
     }
+  } catch (error) {
+    state.error = error.message ?? String(error);
+  } finally {
     state.initialized = true;
-  });
+    state.loading = false;
+    render();
+  }
 }
 
 async function loadWorkspace() {
